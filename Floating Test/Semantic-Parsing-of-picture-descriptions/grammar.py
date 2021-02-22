@@ -61,11 +61,12 @@ def create_lex_rules():
 
 
 class ParseItem:
-    def __init__(self,categorie,length,semantic,components):
+    def __init__(self,categorie,length,semantic,components,str_form):
         self.c = categorie
         self.s = length
         self.semantic = semantic
         self.components = components
+        self.formular = str_form
 
 class Grammar:
 
@@ -88,7 +89,7 @@ class Grammar:
                     semantic = self.functions[function]
                 except:
                     semantic = eval(function)
-                item = ParseItem(categorie,1,semantic,{(word,function)})
+                item = ParseItem(categorie,1,semantic,{(word,function)}, function)
                 chart[categorie,1].add(item)
                 agenda.append(item)
         # TODO: construct predicates out of the air 
@@ -104,7 +105,8 @@ class Grammar:
             semantic1 = item.semantic
             new_items = set()
             for c2,s2 in chart:
-                s_new = 1+s1+s2
+                #s_new = 1+s1+s2
+                s_new = s1+s2
                 if maxlen_currently < s_new:
                     maxlen_currently = s_new
                 if (c2,c1) in self.rules:
@@ -112,8 +114,10 @@ class Grammar:
                      for item2 in chart[c2,s2]:
                          #print(semantic1,item2.semantic,c1,item2.c)
                          semantic_new = item2.semantic (semantic1)
+                         #print(semantic_new)
                          components_new = components1.union(item2.components)
-                         item_new = ParseItem(c_new,s_new,semantic_new,components_new)
+                         function_new = item2.formular + "(" + item.formular + ")"
+                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new)
                          agenda.append(item_new)
                          new_items.add(item_new)
                 if (c1,c2) in self.rules:
@@ -121,7 +125,8 @@ class Grammar:
                      for item2 in chart[c2,s2]:
                          semantic_new = semantic1 (item2.semantic)
                          components_new = components1.union(item2.components)
-                         item_new = ParseItem(c_new,s_new,semantic_new,components_new)
+                         function_new = item.formular + "(" + item2.formular + ")"
+                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new)
                          agenda.append(item_new)
                          new_items.add(item_new)
             for new_item in new_items:
@@ -142,13 +147,81 @@ class Grammar:
         for key, val in list(self.functions.items()):
             setattr(grammar, key, val)
         return eval(lf[0][1])  # Interpret just the root node's semantics.
+        #return eval(lf.formular)
             
                 
-        
+gold_lexicon = {
+    'form':[('B', 'block_filter([], allblocks)')],
+    'forms':[('B', 'block_filter([], allblocks)')],
+    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)')],
+    'squares': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)')],
+    'triangle': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)')],
+    'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)')],
+    'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)')],
+    'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)')],
+    'green': [('C', 'green')],
+    'yellow': [('C', 'yellow')],
+    'blue': [('C', 'blue')],
+    'red': [('C', 'red')],
+    'is': [('E', 'exist')],
+    'are': [('E', 'exist')],
+    'a':[('N','range(1,17)')],
+    'one':[('N','[1]')],
+    'two':[('N','[2]')],
+    'three':[('N','[3]')],
+    'under': [('POS', 'under')],
+    'over': [('POS', 'over')],
+    'next': [('POS', 'next')],
+    'left': [('POS', 'left')],
+    'right': [('POS', 'right')],
+    'and': [('CONJ', 'und')],
+    'or': [('CONJ', 'oder'),('CONJ','xoder')],
+    'epsilon': [('N', 'range(1,17)'),('E', 'exist'),('C', 'anycol')]
+
+}        
 
 
 
 rules = {
+ ('EN','BC'):'V',
+ ('EN','BS'):'V',
+ ('CONJ','V'):'CONJ_1',
+ ('CONJ_1','V'):'V',
+ ('E','N'):'EN',
+ ('C','B'):'BC',
+ ('POS','N'):'POS_N',
+ ('POS_N','BC'):'POS_NB',
+ ('POS_NB','BC'):'BC',
+ ('POS_NB','BC'):'BS',
+
+}
+
+
+
+
+functions = {
+    'exist': (lambda n: (lambda b: update_guess(b) and len(b) in n)),
+    'und': (lambda v1: (lambda v2: v1 and v2)),
+    'oder': (lambda v1: (lambda v2: v1 or v2)),
+    'xoder': (lambda v1: (lambda v2: (v1 and not v2) or (v2 and not v1))),
+
+    'blue': (lambda x: block_filter([(lambda b:b.colour == "blue")], x)),
+    'red': (lambda x: block_filter([(lambda b:b.colour == "red")], x)),
+    'green': (lambda x: block_filter([(lambda b:b.colour == "green")], x)),
+    'yellow':(lambda x: block_filter([(lambda b:b.colour == "yellow")], x)),
+    'anycol':(lambda x: block_filter([], x)),
+
+    'under': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "u")))),
+    'over': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "o")))),
+    'next': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "n")))),
+    'left': (lambda n: (lambda x: (lambda y:position_test(y, x, n, "l")))),
+    'right': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "r"))))
+}
+
+
+
+
+rules2 = {
  ('EN','B'): 'V',
  ('EN','BS'):'V',
  ('VAND','V'):'V',
@@ -169,7 +242,7 @@ rules = {
 
 
 
-functions = {
+functions2 = {
     'identity': (lambda x: x),
     'exist': (lambda n: (lambda b: update_guess(b) and len(b) in n)),
     'und': (lambda v1: (lambda v2: v1 and v2)),
@@ -188,7 +261,7 @@ functions = {
     'right': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "r"))))
 }
 
-gold_lexicon = {
+gold_lexicon2 = {
     'form':[('B', 'block_filter([], allblocks)')],
     'forms':[('B', 'block_filter([], allblocks)')],
     'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)')],
@@ -220,9 +293,14 @@ gold_lexicon = {
     'the': [('THE', 'identity')]
 
 }
+
+
+
+
+
 from world import *
 #creat_all_blocks(setPicParameters())
-gram = Grammar(gold_lexicon, rules, functions)
+gram = Grammar(gold_lexicon2, rules2, functions2)
 allblocks2 = []
 all_blocks_grid = allblocks_test.copy()
 for row in allblocks_test:
@@ -230,6 +308,9 @@ for row in allblocks_test:
         if blo:
             allblocks2.append(blo)
 allblocks = allblocks2
-lfs = gram.gen("there is one red triangle")
+
+lfs = gram.gen("there is one yellow triangle")
 for lf in lfs:
     print(lf.c,lf.s,lf.semantic,lf.components)
+    print(lf.formular)
+    
