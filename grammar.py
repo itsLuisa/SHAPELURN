@@ -1,18 +1,3 @@
-#!/usr/bin/env python
-
-"""
-Defines our grammar: the lexicon (which actually is not used in the game when learning from scratch), the CFG rules
-and the functions on how to evaluate the logical forms with respect to a current Picture Object
-It also includes the CKY parser used to parse the input utterances and convert into logical forms
-
-Terminology:
-Difference between referenced and guessed blocks:
-for sentences like "there is a red circle" both refer to the same Block objects, i.e. the objects of all red circles in the Picture
-but for e.g. the sentence "there is a green triangle over a red square over a circle" referenced blocks consists of
-all green triangles that are over red squares that are over any circle
-whereas guessed blocks consists of all green triangles, red squares and circles that make this sentence true
-"""
-
 import sys
 from collections import defaultdict
 from itertools import product
@@ -71,102 +56,86 @@ def create_lex_rules():
         
     return list(crude_rules)
 
-"""
-The framework below is taken from Potts & Liang
-We defined our own lexicon, rules and  functions and extended the main function demonstrating our grammar framework
-The Grammar class was taken from Potts & Liang and we adapted the CKY parser by adding backpointers and added the 
-methods needed to use the backpointers and recursively build the tree
-allcombos and sem were not changed by us
-"""
+
+
+
+
+class ParseItem:
+    def __init__(self,categorie,length,semantic,components,str_form):
+        self.c = categorie
+        self.s = length
+        self.semantic = semantic
+        self.components = components
+        self.formular = str_form
 
 class Grammar:
 
     def __init__(self, lexicon, rules, functions):
         """For examples of these arguments, see below."""
         self.lexicon = lexicon
-        self.rules = rules
         self.functions = functions
-        self.backpointers = defaultdict(list)
+        self.rules = rules
 
-    def recursive_treebuild(self, current):
-        """
-        recursively builds up the tree parse tree based on self.backpointers
-        :param current: triple consisting of (Nonterminal, start_index, end_index) for which the trees with the
-                        root Nonterminal that covers the input from start_index to end_index should be build
-        :return: list of all possible trees with root Nonterminal covering start_index to end_index
-        """
-        current_label = current[0]
-        current_start = current[1]
-        current_end = current[2]
-        sub_trees = []
-        if current_end - current_start == 1:
-            leaf = self.backpointers[current]
-            tree = [current_label, leaf]
-            sub_trees.append(tree)
-        else:
-            possible_children = self.backpointers[current]
-            for pointer in possible_children:
-                child1 = pointer[0]
-                child2 = pointer[1]
-                k = pointer[2]
-                left_subtrees = self.recursive_treebuild((child1, current_start, k))
-                right_subtrees = self.recursive_treebuild((child2, k, current_end))
-
-                for left in left_subtrees:
-                    for right in right_subtrees:
-                        tree = [current_label, [left, right]]
-                        sub_trees.append(tree)
-
-        return sub_trees
-
-
-    def compute_parse_trees(self, n):
-        """
-        computes the parse trees rooted in the start symbol V and spanning words from position 0 to n
-        which corresponds to the whole input utterance
-        :param n: int length of the string that should be covered by the tree + 1
-        :return: list of all parse trees
-        """
-        parse_trees = []
-        for l, x, y in self.backpointers:
-            if l[0] == "V" and x == 0 and y == n:
-                parse_trees += self.recursive_treebuild((l, x, y))
-        return parse_trees
-
-
-    def gen(self, s):
-        """CYK parsing, but we just keep the full derivations. The input
-        s should be a string that can be parsed with this grammar."""
+    def gen(self,s):
+        """ Floating Parser"""
         words = s.split()
-        n = len(words) + 1
-        trace = defaultdict(set)
-        self.backpointers = defaultdict(list)
-
-        for i in range(1, n):
-            word = words[i - 1]
-            for syntax, semantic in self.lexicon[word]:
-                trace[(i - 1, i)].add((syntax, semantic))
-                self.backpointers[((syntax, semantic), i - 1, i)].append(word)
-
-        for j in range(2, n):
-            for i in range(j - 1, -1, -1):
-                for k in range(i + 1, j):
-                    for c1, c2 in product(trace[(i, k)], trace[(k, j)]):
-                        for lfnode in self.allcombos(c1, c2):
-                            trace[(i, j)].add(lfnode)
-                            self.backpointers[(lfnode, i, j)].append((c1, c2, k))
-        # Return only full parses, from the upper right of the chart:
-        return self.compute_parse_trees(n - 1)
-
-    def allcombos(self, c1, c2):
-        """Given any two nonterminal node labels, find all the ways
-        they can be combined given self.rules."""
+        maxlen = len(words)+2 
+        chart = defaultdict(set)
+        agenda = []
+        # construct predicates according to utterance
+        for word in words:
+            for categorie,function in self.lexicon[word]:
+                try:
+                    semantic = self.functions[function]
+                except:
+                    semantic = eval(function)
+                item = ParseItem(categorie,1,semantic,{(word,function)}, function)
+                chart[categorie,1].add(item)
+                agenda.append(item)
+        # TODO: construct predicates out of the air 
+        for function in functions:
+            pass
+        # construct longer formulas using this components:
+        maxlen_currently = 1
+        while (maxlen_currently <= maxlen) and agenda :
+            item = agenda.pop(0)
+            s1 = item.s
+            c1 = item.c
+            components1 = item.components
+            semantic1 = item.semantic
+            new_items = set()
+            for c2,s2 in chart:
+                #s_new = 1+s1+s2
+                s_new = s1+s2
+                if maxlen_currently < s_new:
+                    maxlen_currently = s_new
+                if (c2,c1) in self.rules:
+                     c_new = self.rules[c2,c1]
+                     for item2 in chart[c2,s2]:
+                         #print(semantic1,item2.semantic,c1,item2.c)
+                         semantic_new = item2.semantic (semantic1)
+                         #print(semantic_new)
+                         components_new = components1.union(item2.components)
+                         function_new = item2.formular + "(" + item.formular + ")"
+                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new)
+                         agenda.append(item_new)
+                         new_items.add(item_new)
+                if (c1,c2) in self.rules:
+                     c_new = self.rules[c1,c2]
+                     for item2 in chart[c2,s2]:
+                         semantic_new = semantic1 (item2.semantic)
+                         components_new = components1.union(item2.components)
+                         function_new = item.formular + "(" + item2.formular + ")"
+                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new)
+                         agenda.append(item_new)
+                         new_items.add(item_new)
+            for new_item in new_items:
+                chart[new_item.c,new_item.s].add(new_item)
         results = []
-        for left, right, mother, app_order in self.rules:
-            if left == c1[0] and right == c2[0]:
-                sem = [c1[1], c2[1]]
-                results.append((mother, "{}({})".format(
-                    sem[app_order[0]], sem[app_order[1]])))
+        for (c,s) in chart:
+            if c =='V':
+                for item in chart[c,s]:
+                    results.append(item)
         return results
 
     def sem(self, lf):
@@ -178,11 +147,121 @@ class Grammar:
         for key, val in list(self.functions.items()):
             setattr(grammar, key, val)
         return eval(lf[0][1])  # Interpret just the root node's semantics.
-
-
-# The lexicon for our pictures
-# Lexicon maps strings to list of tuples of (category, logical form)
+        #return eval(lf.formular)
+            
+                
 gold_lexicon = {
+    'form':[('B', 'block_filter([], allblocks)')],
+    'forms':[('B', 'block_filter([], allblocks)')],
+    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)')],
+    'squares': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)')],
+    'triangle': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)')],
+    'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)')],
+    'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)')],
+    'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)')],
+    'green': [('C', 'green')],
+    'yellow': [('C', 'yellow')],
+    'blue': [('C', 'blue')],
+    'red': [('C', 'red')],
+    'is': [('E', 'exist')],
+    'are': [('E', 'exist')],
+    'a':[('N','range(1,17)')],
+    'one':[('N','[1]')],
+    'two':[('N','[2]')],
+    'three':[('N','[3]')],
+    'under': [('POS', 'under')],
+    'over': [('POS', 'over')],
+    'next': [('POS', 'next')],
+    'left': [('POS', 'left')],
+    'right': [('POS', 'right')],
+    'and': [('CONJ', 'und')],
+    'or': [('CONJ', 'oder'),('CONJ','xoder')],
+    'epsilon': [('N', 'range(1,17)'),('E', 'exist'),('C', 'anycol')]
+
+}        
+
+
+
+rules = {
+ ('EN','BC'):'V',
+ ('EN','BS'):'V',
+ ('CONJ','V'):'CONJ_1',
+ ('CONJ_1','V'):'V',
+ ('E','N'):'EN',
+ ('C','B'):'BC',
+ ('POS','N'):'POS_N',
+ ('POS_N','BC'):'POS_NB',
+ ('POS_NB','BC'):'BC',
+ ('POS_NB','BC'):'BS',
+
+}
+
+
+
+
+functions = {
+    'exist': (lambda n: (lambda b: update_guess(b) and len(b) in n)),
+    'und': (lambda v1: (lambda v2: v1 and v2)),
+    'oder': (lambda v1: (lambda v2: v1 or v2)),
+    'xoder': (lambda v1: (lambda v2: (v1 and not v2) or (v2 and not v1))),
+
+    'blue': (lambda x: block_filter([(lambda b:b.colour == "blue")], x)),
+    'red': (lambda x: block_filter([(lambda b:b.colour == "red")], x)),
+    'green': (lambda x: block_filter([(lambda b:b.colour == "green")], x)),
+    'yellow':(lambda x: block_filter([(lambda b:b.colour == "yellow")], x)),
+    'anycol':(lambda x: block_filter([], x)),
+
+    'under': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "u")))),
+    'over': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "o")))),
+    'next': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "n")))),
+    'left': (lambda n: (lambda x: (lambda y:position_test(y, x, n, "l")))),
+    'right': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "r"))))
+}
+
+
+
+
+rules2 = {
+ ('EN','B'): 'V',
+ ('EN','BS'):'V',
+ ('VAND','V'):'V',
+ ('I','N'):'EN',
+ ('E','I'):'I',
+ ('C','B'):'B',
+ ('L','B'):'BS',
+ ('POS','B'):'L',
+ ('POS','BS'):'L',
+ ('PP','N'):'POS',
+ ('TO','NEXT'):'PP',
+ ('TS','SIDE'):'PP',
+ ('TO','THE'):'TS',
+ ('TO','LR'):'SIDE',
+ ('AND','V'):'VAND'
+}
+
+
+
+
+functions2 = {
+    'identity': (lambda x: x),
+    'exist': (lambda n: (lambda b: update_guess(b) and len(b) in n)),
+    'und': (lambda v1: (lambda v2: v1 and v2)),
+    'oder': (lambda v1: (lambda v2: v1 or v2)),
+    'xoder': (lambda v1: (lambda v2: (v1 and not v2) or (v2 and not v1))),
+
+    'blue': (lambda x: block_filter([(lambda b:b.colour == "blue")], x)),
+    'red': (lambda x: block_filter([(lambda b:b.colour == "red")], x)),
+    'green': (lambda x: block_filter([(lambda b:b.colour == "green")], x)),
+    'yellow':(lambda x: block_filter([(lambda b:b.colour == "yellow")], x)),
+
+    'under': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "u")))),
+    'over': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "o")))),
+    'next': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "n")))),
+    'left': (lambda n: (lambda x: (lambda y:position_test(y, x, n, "l")))),
+    'right': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "r"))))
+}
+
+gold_lexicon2 = {
     'form':[('B', 'block_filter([], allblocks)')],
     'forms':[('B', 'block_filter([], allblocks)')],
     'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)')],
@@ -215,113 +294,23 @@ gold_lexicon = {
 
 }
 
-# The binarized rule set for our pictures, start symbol is V
-# each entry is a list of four elements ['B', 'C', 'A', (i,j)]
-# where A is the parent category, B the left child and C the right child
-# (i,j) states that the logical form of the ith element is applied to the locigal form of the jth element
-# e.g. The first rule corresponds to: V -> EN  B  and specifies that EN is applied to B: EN(B)
-rules = [
-    ['EN', 'B', 'V', (0, 1)],
-    ['EN', 'BS', 'V', (0, 1)],
-    ['VAND', 'V', 'V', (0, 1)],
-    ['I', 'N', 'EN', (0, 1)],
-    ['E', 'I', 'I', (0, 1)],
-    ['C', 'B', 'B', (0, 1)],
-    ['B', 'L', 'BS', (1, 0)],
-    ['POS', 'B', 'L', (0, 1)],
-    ['POS', 'BS', 'L', (0, 1)],
-    ['U', 'N', 'POS', (0, 1)],
-    ['PP', 'N', 'POS', (0, 1)],
-    ['NEXT', 'TO', 'PP', (1, 0)],
-    ['TS', 'SIDE', 'PP', (0, 1)],
-    ['TO', 'THE', 'TS', (0, 1)],
-    ['LR', 'TO', 'SIDE', (1, 0)],
-    ['V', 'AND', 'VAND', (1, 0)]
-]
-
-# The functions that are used to interpret our logical forms with eval.
-# They are imported into the namespace Grammar.sem to achieve that.
-functions = {
-    'identity': (lambda x: x),
-    'exist': (lambda n: (lambda b: update_guess(b) and len(b) in n)),
-    'und': (lambda v1: (lambda v2: v1 and v2)),
-    'oder': (lambda v1: (lambda v2: v1 or v2)),
-    'xoder': (lambda v1: (lambda v2: (v1 and not v2) or (v2 and not v1))),
-
-    'blue': (lambda x: block_filter([(lambda b:b.colour == "blue")], x)),
-    'red': (lambda x: block_filter([(lambda b:b.colour == "red")], x)),
-    'green': (lambda x: block_filter([(lambda b:b.colour == "green")], x)),
-    'yellow':(lambda x: block_filter([(lambda b:b.colour == "yellow")], x)),
-
-    'under': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "u")))),
-    'over': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "o")))),
-    'next': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "n")))),
-    'left': (lambda n: (lambda x: (lambda y:position_test(y, x, n, "l")))),
-    'right': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "r"))))
-}
 
 
-# Main is used for testing the grammar with the test sentences from semdata.py
-# Run the main for a simple demo of our grammar with respect to a
-
-if __name__ == '__main__':
-
-    from semdata import test_utterances
-    from world import *
-
-    # creates the grammar 
-    gram = Grammar(gold_lexicon, rules, functions)
-
-    # use picture from world.png and world.py for testing purpose
-    allblocks2 = []
-    all_blocks_grid = allblocks_test.copy()
-    for row in allblocks_test:
-        for blo in row:
-            if blo:
-                allblocks2.append(blo)
-    allblocks = allblocks2
-
-    # parses all test sentences from semdata.py
-    # prints the derived logical forms for each test sentence and whether the test sentence is true with respect to the example picture world.png
-    for i,u in enumerate(test_utterances):
-
-        # creates the global variable for keeping track of which block is / blocks are the described one(s)
-        guessed_blocks = set()
-        
-        lfs = gram.gen(u)
-        if len(lfs) > 1:
-            print("longer")
-        print("======================================================================")
-        print('Utterance: {}'.format(u))
-        for lf in lfs:
-            print("\tLF: {}".format(lf))
-            seman = gram.sem(lf)
-            print('\tDenotation: {}'.format(seman))
-
-            # if utterance doesn't describe sentence not blocks should be guessed at all
-            if seman == False:
-                guessed_blocks = set()
-
-            # visualization of how the computer gives feedback about what it "understood"
-            # for the example for the sentence 'there is a red triangle under a blue square' the picture object corresponding to world.png is created
-            # and a png file is created and saved where the blocks that are in all_blocks_grid are marked, e.g. all blocks that are red and have shape
-            # triangle and are positioned below a blue square in the grid are marked as well as the blue squares that are above the red triangle
-            
-            from BlockPictureGenerator import * 
-            test_pic = Picture(name = "./marked_pictures/" + u)
-            test_pic.blocks = allblocks.copy()
-            test_pic.block_n = len(test_pic.blocks)
-            test_pic.grid = all_blocks_grid
-
-            test_pic.draw()
-            guess = []
-            for b in guessed_blocks:
-                guess.append((b.y, b.x))
-            test_pic.mark(guess)
 
 
-                
+from world import *
+#creat_all_blocks(setPicParameters())
+gram = Grammar(gold_lexicon, rules, functions)
+allblocks2 = []
+all_blocks_grid = allblocks_test.copy()
+for row in allblocks_test:
+    for blo in row:
+        if blo:
+            allblocks2.append(blo)
+allblocks = allblocks2
 
+lfs = gram.gen("epsilon is a yellow triangle")
+for lf in lfs:
+    print(lf.c,lf.s,lf.semantic,lf.components)
+    print(lf.formular)
     
-
-
