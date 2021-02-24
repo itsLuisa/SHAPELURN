@@ -2,6 +2,7 @@ import sys
 from collections import defaultdict
 from itertools import product
 from eval_helper import *
+from world import *
 
 # variable to store all blocks of the current picture
 allblocks = []
@@ -321,21 +322,22 @@ gold_lexicon2 = {
 
 
 
+def main():
+    #creat_all_blocks(setPicParameters())
+    gram = Grammar(gold_lexicon2, rules2, functions2)
+    allblocks2 = []
+    all_blocks_grid = allblocks_test.copy()
+    for row in allblocks_test:
+        for blo in row:
+            if blo:
+                allblocks2.append(blo)
+    allblocks = allblocks2
 
-from world import *
-#creat_all_blocks(setPicParameters())
-gram = Grammar(gold_lexicon2, rules2, functions2)
-allblocks2 = []
-all_blocks_grid = allblocks_test.copy()
-for row in allblocks_test:
-    for blo in row:
-        if blo:
-            allblocks2.append(blo)
-allblocks = allblocks2
+    lfs = gram.gen("a yellow triangle there is")
+    for lf in lfs:
+        print(lf.c,lf.s,lf.semantic,lf.components)
+        print(lf.formular)
+        print(lf.guessed_blocks)
 
-lfs = gram.gen("a yellow triangle there is")
-for lf in lfs:
-    print(lf.c,lf.s,lf.semantic,lf.components)
-    print(lf.formular)
-    print(lf.guessed_blocks)
-    
+if __name__ == "__main__":
+    main()
