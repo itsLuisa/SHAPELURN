@@ -319,7 +319,12 @@ gold_lexicon2 = {
 
 }
 
-
+def grouping(lfs):
+    groups = dict()
+    for lf in lfs:
+        if lf.semantic:
+            groups[lf.guessed_blocks] = (lf.components, lf.formular)
+    return groups
 
 
 def main():
@@ -333,11 +338,12 @@ def main():
                 allblocks2.append(blo)
     allblocks = allblocks2
 
-    lfs = gram.gen("a yellow triangle there is")
+    lfs = gram.gen("a red circle there is")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
         print(lf.guessed_blocks)
+    print(grouping(lfs))
 
 if __name__ == "__main__":
     main()
