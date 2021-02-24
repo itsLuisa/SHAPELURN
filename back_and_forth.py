@@ -17,7 +17,7 @@ class BackAndForth_Iterator:
             raise StopIteration
         self.index -= 1
         if self.index < 0:
-            self.index = len(self.somelist)-1
+            self.index = len(self.list)-1
         return self.list[self.index]
     
         
