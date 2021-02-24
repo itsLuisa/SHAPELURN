@@ -88,17 +88,16 @@ class MyTestCase(unittest.TestCase):
 
             lfs = gram.gen(u)
             for lf in lfs:
-                seman = gram.sem(lf)
+                seman = lf.semantic
                 guess = []
-                for b in guessed_blocks:
+                for b in lf.guessed_blocks:
                     guess.append((b.y, b.x))
-                guessed_blocks.clear()
 
                 self.assertEqual(t, seman)
                 self.assertEqual(g, set(guess))
 
     def test_conjunction(self):
-        for test_ins in test_sentences_conj:
+        for test_ins in test_set:
             u = test_ins[0]
             print(u)
             t = test_ins[1]
@@ -106,17 +105,16 @@ class MyTestCase(unittest.TestCase):
 
             lfs = gram.gen(u)
             for lf in lfs:
-                seman = gram.sem(lf)
+                seman = lf.semantic
                 guess = []
-                for b in guessed_blocks:
+                for b in lf.guessed_blocks:
                     guess.append((b.y, b.x))
-                guessed_blocks.clear()
 
                 self.assertEqual(t, seman)
                 self.assertEqual(g, set(guess))
 
     def test_position(self):
-        for test_ins in test_sentences_pos:
+        for test_ins in test_set:
             u = test_ins[0]
             print(u)
             t = test_ins[1]
@@ -124,17 +122,16 @@ class MyTestCase(unittest.TestCase):
 
             lfs = gram.gen(u)
             for lf in lfs:
-                seman = gram.sem(lf)
+                seman = lf.semantic
                 guess = []
-                for b in guessed_blocks:
+                for b in lf.guessed_blocks:
                     guess.append((b.y, b.x))
-                guessed_blocks.clear()
 
                 self.assertEqual(t, seman)
                 self.assertEqual(g, set(guess))
 
     def test_nested(self):
-        for test_ins in nested_test_sentences:
+        for test_ins in test_set:
             u = test_ins[0]
             print(u)
             t = test_ins[1]
@@ -142,17 +139,16 @@ class MyTestCase(unittest.TestCase):
 
             lfs = gram.gen(u)
             for lf in lfs:
-                seman = gram.sem(lf)
+                seman = lf.semantic
                 guess = []
-                for b in guessed_blocks:
+                for b in lf.guessed_blocks:
                     guess.append((b.y, b.x))
-                guessed_blocks.clear()
 
                 self.assertEqual(t, seman)
                 self.assertEqual(g, set(guess))
 
     def test_special_cases(self):
-        for test_ins in special_sentences:
+        for test_ins in test_set:
             u = test_ins[0]
             print(u)
             t = test_ins[1]
@@ -160,11 +156,10 @@ class MyTestCase(unittest.TestCase):
 
             lfs = gram.gen(u)
             for lf in lfs:
-                seman = gram.sem(lf)
+                seman = lf.semantic
                 guess = []
-                for b in guessed_blocks:
+                for b in lf.guessed_blocks:
                     guess.append((b.y, b.x))
-                guessed_blocks.clear()
 
                 self.assertEqual(t, seman)
                 self.assertEqual(g, set(guess))
