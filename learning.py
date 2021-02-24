@@ -79,14 +79,14 @@ def SGD(D=None, phi=None, classes=None, true_or_false=None, T=10, eta=0.1, outpu
     for t in range(T):
         random.shuffle(D)
         for x, y in D:
-            print("---",true_or_false(y))
             # Get all (score, y') pairs:
-            scores = [(score(x, y_alt, phi, w)+cost(y, y_alt), y_alt)
-                      for y_alt in classes(x)]
+            #scores = [(score(x, y_alt, phi, w)+cost(y, y_alt), y_alt)
+                      #for y_alt in classes(x)]
+            scores = {y_alt:(score(x, y_alt, phi, w)+cost(y, y_alt)) for y_alt in classes(x)}
             # Get the maximal score:
-            max_score = sorted(scores)[-1][0]
+            max_score = max(list(scores.values()))
             # Get all the candidates with the max score and choose one randomly:
-            y_tildes = [y_alt for s, y_alt in scores if s == max_score]
+            y_tildes = [y_alt for y_alt in scores if scores[y_alt] == max_score]
             y_tilde = random.choice(y_tildes)
             # Weight-update (a bit cumbersome because of the dict-based implementation):
             actual_rep = phi(x, y)
@@ -126,7 +126,7 @@ def LatentSGD(D=None, phi=None, classes=None, T=10, eta=0.1, output_transform=No
 
 def cost(y, y_prime):
     """Cost function used by `SGD` (above) and `LatentSGD` (below)."""
-    return 0.0 if y == y_prime else 1.0
+    return 0.0 if y.components == y_prime.components else 1.0
 
 def evaluate(
         phi=None, 

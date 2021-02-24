@@ -70,17 +70,22 @@ def phi_sem(x, y):
     d = defaultdict(float)
     # Topmost relation symbol:
     toprel_re = re.compile(r"^(and|exist)")
-    match = toprel_re.search(y[0][1])
+    #match = toprel_re.search(y[0][1])
+    match = toprel_re.search(y.formular)
     if match:
         d[('top', 'R', match.group(1))] = 1.0
     # Lexical features:
-    for leaf in leaves(y):
+    for leaf in y.components:
         d[leaf] += 1.0
     return d
+    """
+    for leaf in leaves(y):
+        d[leaf] += 1.0
+    return d"""
 
-def leaves(x):
-    """Recursive function for finding all the preterminals (mother--child)
-    trees. Used by phi_sem"""
+"""def leaves(x):
+    #Recursive function for finding all the preterminals (mother--child)
+    #trees. Used by phi_sem
     # Leaf-only trees:
     if len(x[1])==1 and isinstance(x[1][0],str):
         return [(x[0],x[1][0])] # Adjusted so it fit our backpointer implementation we build in the CYK-parser
@@ -88,7 +93,7 @@ def leaves(x):
     l = []
     for child in x[1]: # Adjusted so it fit to our backpointer implementation we build in the CYK-parser
         l += leaves(child)
-    return l
+    return l"""
 
 
 def evaluate_semparse(u,lf,grammar): # We give evaluate_semparse an utterance, an lf and a grammar as arguments so wen can use it for our interactive game
