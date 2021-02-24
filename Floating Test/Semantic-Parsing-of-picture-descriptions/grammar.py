@@ -133,17 +133,26 @@ class Grammar:
                          new_items.add(item_new)
             for new_item in new_items:
                 chart[new_item.c,new_item.s].add(new_item)
+
         results = []
-        included_formulars = []
+        included_items = []
         for (c,s) in chart:
             if c =='V':
                 for item in chart[c,s]:
-                    if item.formular in included_formulars:
+                    if self.check_member(included_items, item):
                         continue
                     else:
                         results.append(item)
-                        included_formulars.append(item.formular)
+                        included_items.append(item)
         return results
+    
+
+    def check_member(self, p_item_list, p_item):
+        for pi in p_item_list:
+            if pi.formular == p_item.formular and pi.components == p_item.components:
+                return True
+        return False
+        
 
     def sem(self, lf):
         """Interpret, as Python code, the root of a logical form
