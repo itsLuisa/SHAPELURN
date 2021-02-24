@@ -61,12 +61,16 @@ def create_lex_rules():
 
 
 class ParseItem:
-    def __init__(self,categorie,length,semantic,components,str_form):
+    """
+    :param categorie:
+    """
+    def __init__(self,categorie,length,semantic,components,str_form,guesses):
         self.c = categorie
         self.s = length
         self.semantic = semantic
         self.components = components
         self.formular = str_form
+        self.guessed_blocks = guesses
 
 
 
@@ -87,11 +91,12 @@ class Grammar:
         # construct predicates according to utterance
         for word in words:
             for categorie,function in self.lexicon[word]:
-                try:
-                    semantic = self.functions[function]
-                except:
-                    semantic = eval(function)
-                item = ParseItem(categorie,1,semantic,{(word,function)}, function)
+                #try:
+                    #semantic = self.functions[function]
+                #except:
+                    #semantic = eval(function)
+                semantic = None
+                item = ParseItem(categorie,1,semantic,{(word,function)}, function, guessed_blocks)
                 chart[categorie,1].add(item)
                 agenda.append(item)
         # TODO: construct predicates out of the air
@@ -115,20 +120,20 @@ class Grammar:
                      c_new = self.rules[c2,c1]
                      for item2 in chart[c2,s2]:
                          #print(semantic1,item2.semantic,c1,item2.c)
-                         semantic_new = item2.semantic (semantic1)
+                         semantic_new = None
                          #print(semantic_new)
                          components_new = components1.union(item2.components)
                          function_new = item2.formular + "(" + item.formular + ")"
-                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new)
+                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new, guessed_blocks)
                          agenda.append(item_new)
                          new_items.add(item_new)
                 if (c1,c2) in self.rules:
                      c_new = self.rules[c1,c2]
                      for item2 in chart[c2,s2]:
-                         semantic_new = semantic1 (item2.semantic)
+                         semantic_new = None
                          components_new = components1.union(item2.components)
                          function_new = item.formular + "(" + item2.formular + ")"
-                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new)
+                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new, guessed_blocks)
                          agenda.append(item_new)
                          new_items.add(item_new)
             for new_item in new_items:
@@ -139,6 +144,9 @@ class Grammar:
         for (c,s) in chart:
             if c =='V':
                 for item in chart[c,s]:
+                    item.semantic = self.sem(item)
+                    item.guessed_blocks = guessed_blocks.copy()
+                    guessed_blocks.clear()
                     if self.check_member(included_items, item):
                         continue
                     else:
@@ -316,7 +324,7 @@ gold_lexicon2 = {
 
 from world import *
 #creat_all_blocks(setPicParameters())
-gram = Grammar(gold_lexicon, rules, functions)
+gram = Grammar(gold_lexicon2, rules2, functions2)
 allblocks2 = []
 all_blocks_grid = allblocks_test.copy()
 for row in allblocks_test:
@@ -325,8 +333,9 @@ for row in allblocks_test:
             allblocks2.append(blo)
 allblocks = allblocks2
 
-lfs = gram.gen("epsilon is one yellow triangle")
+lfs = gram.gen("a yellow triangle there is")
 for lf in lfs:
     print(lf.c,lf.s,lf.semantic,lf.components)
     print(lf.formular)
-    print(gram.sem(lf))
+    print(lf.guessed_blocks)
+    
