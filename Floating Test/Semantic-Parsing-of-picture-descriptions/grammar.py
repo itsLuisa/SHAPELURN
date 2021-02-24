@@ -68,6 +68,8 @@ class ParseItem:
         self.components = components
         self.formular = str_form
 
+
+
 class Grammar:
 
     def __init__(self, lexicon, rules, functions):
@@ -132,10 +134,15 @@ class Grammar:
             for new_item in new_items:
                 chart[new_item.c,new_item.s].add(new_item)
         results = []
+        included_formulars = []
         for (c,s) in chart:
             if c =='V':
                 for item in chart[c,s]:
-                    results.append(item)
+                    if item.formular in included_formulars:
+                        continue
+                    else:
+                        results.append(item)
+                        included_formulars.append(item.formular)
         return results
 
     def sem(self, lf):
@@ -146,8 +153,8 @@ class Grammar:
         grammar = sys.modules[__name__]
         for key, val in list(self.functions.items()):
             setattr(grammar, key, val)
-        return eval(lf[0][1])  # Interpret just the root node's semantics.
-        #return eval(lf.formular)
+        #return eval(lf[0][1])  # Interpret just the root node's semantics.
+        return eval(lf.formular)
             
                 
 gold_lexicon = {
@@ -176,7 +183,7 @@ gold_lexicon = {
     'right': [('POS', 'right')],
     'and': [('CONJ', 'und')],
     'or': [('CONJ', 'oder'),('CONJ','xoder')],
-    'epsilon': [('N', 'range(1,17)'),('E', 'exist'),('C', 'anycol')]
+    'epsilon': [('C', 'anycol')]
 
 }        
 
@@ -300,7 +307,7 @@ gold_lexicon2 = {
 
 from world import *
 #creat_all_blocks(setPicParameters())
-gram = Grammar(gold_lexicon2, rules2, functions2)
+gram = Grammar(gold_lexicon, rules, functions)
 allblocks2 = []
 all_blocks_grid = allblocks_test.copy()
 for row in allblocks_test:
@@ -309,8 +316,9 @@ for row in allblocks_test:
             allblocks2.append(blo)
 allblocks = allblocks2
 
-lfs = gram.gen("there is one yellow triangle")
+lfs = gram.gen("epsilon is one yellow triangle")
 for lf in lfs:
     print(lf.c,lf.s,lf.semantic,lf.components)
     print(lf.formular)
+    print(gram.sem(lf))
     
