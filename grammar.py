@@ -71,6 +71,21 @@ def create_lex_rules():
         
     return list(crude_rules)
 
+
+
+class ParseItem:
+    """
+    :param categorie:
+    """
+    def __init__(self,categorie,length,semantic,components,str_form,guesses):
+        self.c = categorie
+        self.s = length
+        self.semantic = semantic
+        self.components = components
+        self.formular = str_form
+        self.guessed_blocks = guesses
+
+
 """
 The framework below is taken from Potts & Liang
 We defined our own lexicon, rules and  functions and extended the main function demonstrating our grammar framework
@@ -156,7 +171,20 @@ class Grammar:
                             trace[(i, j)].add(lfnode)
                             self.backpointers[(lfnode, i, j)].append((c1, c2, k))
         # Return only full parses, from the upper right of the chart:
-        return self.compute_parse_trees(n - 1)
+        results = []
+        parse_trees = self.compute_parse_trees(n-1)
+        for lf in parse_trees:
+            category = lf[0][0]
+            formular = lf[0][1]
+            l = n
+            p_item = ParseItem(category, n, None, set(), formular, None)
+            p_item.semantic = self.sem(p_item)
+            p_item.guessed_blocks = guessed_blocks.copy()
+            guessed_blocks.clear()
+            results.append(p_item)
+            
+        return results
+        #return self.compute_parse_trees(n - 1)
 
     def allcombos(self, c1, c2):
         """Given any two nonterminal node labels, find all the ways
@@ -177,7 +205,8 @@ class Grammar:
         grammar = sys.modules[__name__]
         for key, val in list(self.functions.items()):
             setattr(grammar, key, val)
-        return eval(lf[0][1])  # Interpret just the root node's semantics.
+        return eval(lf.formular)
+        #return eval(lf[0][1])  # Interpret just the root node's semantics.
 
 
 # The lexicon for our pictures
@@ -294,12 +323,12 @@ if __name__ == '__main__':
         print("======================================================================")
         print('Utterance: {}'.format(u))
         for lf in lfs:
-            print("\tLF: {}".format(lf))
-            seman = gram.sem(lf)
-            print('\tDenotation: {}'.format(seman))
+            print("\tLF: {}".format(lf.formular))
+            print('\tDenotation: {}'.format(lf.semantic))
+            print(lf.guessed_blocks)
 
             # if utterance doesn't describe sentence not blocks should be guessed at all
-            if seman == False:
+            if lf.semantic == False:
                 guessed_blocks = set()
 
             # visualization of how the computer gives feedback about what it "understood"
@@ -315,7 +344,7 @@ if __name__ == '__main__':
 
             test_pic.draw()
             guess = []
-            for b in guessed_blocks:
+            for b in lf.guessed_blocks:
                 guess.append((b.y, b.x))
             test_pic.mark(guess)
 
