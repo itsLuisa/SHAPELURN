@@ -229,7 +229,7 @@ while True:
         window["-INPUT-"].update("")
 
         # updates weights
-        weights = evaluate_semparse(inpt,lf,gram)
+        weights = evaluate_semparse(inpt,lf,gram,lfs.list)
         print("TEST",[weights[key] for key in weights],[0.0 for word in inpt],len(inpt.split()))
         if [weights[key] for key in weights] == [0.0 for word in inpt.split()]:
             print("Works!")

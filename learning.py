@@ -82,7 +82,7 @@ def SGD(D=None, phi=None, classes=None, true_or_false=None, T=10, eta=0.1, outpu
             # Get all (score, y') pairs:
             #scores = [(score(x, y_alt, phi, w)+cost(y, y_alt), y_alt)
                       #for y_alt in classes(x)]
-            scores = {y_alt:(score(x, y_alt, phi, w)+cost(y, y_alt)) for y_alt in classes(x)}
+            scores = {y_alt:(score(x, y_alt, phi, w)+cost(y, y_alt)) for y_alt in classes}
             # Get the maximal score:
             max_score = max(list(scores.values()))
             # Get all the candidates with the max score and choose one randomly:
