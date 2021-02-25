@@ -320,10 +320,10 @@ gold_lexicon2 = {
 }
 
 def grouping(lfs):
-    groups = dict()
+    groups = defaultdict(list)
     for lf in lfs:
         if lf.semantic:
-            groups[lf.guessed_blocks] = (lf.components, lf.formular)
+            groups[lf.guessed_blocks].append(lf)
     return groups
 
 

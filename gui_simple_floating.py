@@ -201,6 +201,21 @@ while True:
 
         # generate all possible trees given the current rules
         lfs = BackAndForth_Iterator(gram.gen(inpt))
+        print(lfs)
+        # with grouping included so every marking will only appear once, doesnt work though
+        '''
+        groups = grouping(gram.gen(inpt))
+        blocks = BackAndForth_Iterator(list(groups.keys()))
+        print(blocks)
+        try:
+            current_marking = blocks.next()
+            guess = []
+            for b in groups[current_marking][0].guessed_blocks:
+                guess.append((b.y, b.x))
+            print(guess)
+
+        except StopIteration:
+            pass'''
 
         # mark first possible guess in the picture
         try:
@@ -210,6 +225,8 @@ while True:
             guess = []
             for b in lf.guessed_blocks:
                 guess.append((b.y, b.x))
+            print(guess)
+
             # mark the guessed blocks in the picture
             current_pic.mark(guess)
             window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name, guess=True))
