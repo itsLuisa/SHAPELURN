@@ -67,7 +67,7 @@ class ParseItem:
     """
     :param categorie:
     """
-    def __init__(self, categorie, length, semantic, components, str_form, guesses, weight):
+    def __init__(self, categorie, length, semantic, components, str_form, guesses, weight, rem_words, incl_words):
         self.c = categorie
         self.s = length
         self.semantic = semantic
@@ -75,6 +75,40 @@ class ParseItem:
         self.formular = str_form
         self.guessed_blocks = guesses
         self.summed_weights = weight
+        self.rem_words = rem_words
+        self.incl_words = incl_words
+
+
+def check_preconditions(pi_1, pi_2):
+    flag1 = False
+    flag2 = False
+
+    if len(pi_1.incl_words) <= len(pi_2.rem_words):
+        flag1 = True
+        temp_list = pi_2.rem_words.copy()
+        for w in pi_1.incl_words:
+            try:
+                temp_list.remove(w)
+            except:
+                flag1 = False
+
+    if len(pi_2.incl_words) <= len(pi_1.rem_words):
+        flag2 = True
+        temp_list = pi_1.rem_words.copy()
+        for w in pi_2.incl_words:
+            try:
+                temp_list.remove(w)
+            except:
+                flag2 = False
+
+    if flag1 and flag2:
+        new_incl = pi_1.incl_words + pi_2.incl_words
+        new_rem = pi_1.incl_words.copy() + pi_1.rem_words.copy()
+        for w in new_incl:
+            new_rem.remove(w)
+        return new_incl, new_rem
+    else:
+        return None, None
 
 
 
@@ -91,60 +125,77 @@ class Grammar:
         words = s.split()
         maxlen = len(words)+2
         chart = defaultdict(set)
-        agenda = []
+        lex_agenda = []
 
         # construct predicates according to utterance
         for word in words:
             for categorie, function, weight in self.lexicon[word]:
                 semantic = None
-                item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight)
+                remaining_words = words.copy()
+                remaining_words.remove(word)
+                item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight, remaining_words, [word])
                 chart[categorie, 1].add(item)
-                agenda.append(item)
+                lex_agenda.append(item)
+
 
         # TODO: construct predicates out of the air
-        for function in functions:
-            pass
+        # TODO: not really tested yet if this works correctly
+        for (categorie, function, weight) in out_of_air:
+            item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, weight, words, [])
+            lex_agenda.append(item)
+
 
         # construct longer formulas using this components:
         maxlen_currently = 1
-        while (maxlen_currently <= maxlen) and agenda:
-            item = agenda.pop(0)
-            s1 = item.s
-            c1 = item.c
-            components1 = item.components
-            new_items = set()
+        while (maxlen_currently <= maxlen):
+            for item in lex_agenda:
+                s1 = item.s
+                c1 = item.c
+                components1 = item.components
+                new_items = set()
 
-            for c2, s2 in chart:
-                s_new = s1+s2
-                if maxlen_currently < s_new:
-                    maxlen_currently = s_new
+                for c2, s2 in chart:
 
-                if (c2,c1) in self.rules:
-                     c_new = self.rules[c2, c1]
-                     for item2 in chart[c2, s2]:
-                         semantic_new = None
-                         components_new = components1.union(item2.components)
-                         function_new = item2.formular + "(" + item.formular + ")"
-                         weight_new = item.summed_weights + item2.summed_weights
-                         item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
-                                              weight_new)
-                         agenda.append(item_new)
-                         new_items.add(item_new)
+                    s_new = s1+s2
+                    if maxlen_currently < s_new:
+                        maxlen_currently = s_new
 
-                if (c1,c2) in self.rules:
-                     c_new = self.rules[c1, c2]
-                     for item2 in chart[c2, s2]:
-                         semantic_new = None
-                         components_new = components1.union(item2.components)
-                         function_new = item.formular + "(" + item2.formular + ")"
-                         weight_new = item.summed_weights + item2.summed_weights
-                         item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
-                                              weight_new)
-                         agenda.append(item_new)
-                         new_items.add(item_new)
+                    if (c2,c1) in self.rules:
+                         c_new = self.rules[c2, c1]
+                         for item2 in chart[c2, s2]:
 
-            for new_item in new_items:
-                chart[new_item.c,new_item.s].add(new_item)
+                             new_incl, new_rem = check_preconditions(item, item2)
+                             if new_incl == None:
+                                 continue
+
+                             semantic_new = None
+                             components_new = components1.union(item2.components)
+                             function_new = item2.formular + "(" + item.formular + ")"
+                             weight_new = item.summed_weights + item2.summed_weights
+                             item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
+                                                  weight_new, new_rem, new_incl)
+                             lex_agenda.append(item_new)
+                             new_items.add(item_new)
+
+                    if (c1,c2) in self.rules:
+                         c_new = self.rules[c1, c2]
+                         for item2 in chart[c2, s2]:
+
+                             new_incl, new_rem = check_preconditions(item, item2)
+                             if new_incl == None:
+                                 continue
+
+                             semantic_new = None
+                             components_new = components1.union(item2.components)
+                             function_new = item.formular + "(" + item2.formular + ")"
+                             weight_new = item.summed_weights + item2.summed_weights
+                             item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
+                                                  weight_new, new_rem, new_incl)
+                             lex_agenda.append(item_new)
+                             new_items.add(item_new)
+
+                for new_item in new_items:
+                    chart[new_item.c,new_item.s].add(new_item)
 
         results = []
         included_items = []
@@ -210,9 +261,12 @@ gold_lexicon = {
     'right': [('POS', 'right', 1)],
     'and': [('CONJ', 'und', 1)],
     'or': [('CONJ', 'oder', 1),('CONJ','xoder', 1)],
-    'epsilon': [('C', 'anycol', 1)]
 
 }
+
+out_of_air = [
+    ('C', 'anycol', 1)
+]
 
 
 
@@ -360,8 +414,9 @@ if __name__ == "__main__":
     allblocks = allblocks2
 
     #lfs = gram.gen("is a red triangle over a blue triangle")
-    #lfs = gram.gen("is one red triangle over a blue triangle")
-    lfs = gram.gen("is a red triangle")
+    #lfs = gram.gen("is one red triangle over a red triangle")
+    #lfs = gram.gen("is a red triangle")
+    lfs = gram.gen("is a triangle")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
