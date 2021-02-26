@@ -1,13 +1,12 @@
 # imports
 import PySimpleGUI as sg
+import os, math
 from gui_design import *
 from BlockPictureGenerator import Picture
 from floating_grammar import *
-import os
 from PIL import Image, ImageTk
 from PictureLevel import *
 from Semantic_Learner import evaluate_semparse
-import math
 from collections import defaultdict
 from cossimforstem import sim_stemm
 from back_and_forth import BackAndForth_Iterator
@@ -51,6 +50,38 @@ def picture_path(level, i_picture, session_name, guess=False):
     path_pict = "./" + session_name + "/" + file_name
     return path_pict
 
+def hiding_unhiding(event):
+    if event == "-NEXT-":
+        window["-LEVEL-"].update("Level " + str(level) + ", Picture " + str(i_picture) + ":")
+        window["-DESCRIPTION-"].update(level1)
+        window["-INPUT-"].update(disabled=False)
+        window["-INPINSTR-"].hide_row()
+        window["-FEEDBACKINSTR-"].hide_row()
+        window["-YES-"].update(disabled=False)
+        window["-NO-"].update(disabled=False)
+        window["-NO2-"].update(disabled=False)
+        window["-SKIP-"].update(disabled=False)
+        window["-YES-"].hide_row()
+        window["-NEXTINSTR-"].hide_row()
+        window["-NEXT-"].hide_row()
+    if event == "-ENTER-":
+        # disabling further keyboard input and unhiding feedback buttons
+        window["-INPUT-"].update(disabled=True)
+        window["-ENTER-"].update(visible=False)
+        window["-YES-"].unhide_row()
+    if event == "-YES-":
+        window["-YES-"].hide_row()
+        window["-ENTER-"].unhide_row()
+        window["-INPUT-"].update(disabled=False)
+        window["-ENTER-"].update(visible=True)
+        window["-INPUT-"].update("")
+    if event == "-NO-" or "-NO2-" or "-SKIP-":
+        window["-YES-"].hide_row()
+        window["-ENTER-"].unhide_row()
+        window["-INPUT-"].update(disabled=False)
+        window["-ENTER-"].update(visible=True)
+        window["-INPUT-"].update("")
+
 # the game loop
 while True:
     # event records which buttons were pressed, values store any keyboard input
@@ -81,20 +112,7 @@ while True:
     if event == "-NEXT-":
         # empty the guesses so they don't stack up with those from previous rounds
         guessed_blocks.clear()
-
-        # hiding all the description from the beginning and updating text display and button clickability
-        window["-LEVEL-"].update("Level " + str(level) + ", Picture " + str(i_picture) + ":")
-        window["-DESCRIPTION-"].update(level1)
-        window["-INPUT-"].update(disabled=False)
-        window["-INPINSTR-"].hide_row()
-        window["-FEEDBACKINSTR-"].hide_row()
-        window["-YES-"].update(disabled=False)
-        window["-NO-"].update(disabled=False)
-        window["-NO2-"].update(disabled=False)
-        window["-SKIP-"].update(disabled=False)
-        window["-YES-"].hide_row()
-        window["-NEXTINSTR-"].hide_row()
-        window["-NEXT-"].hide_row()
+        hiding_unhiding(event)
 
         # initializing the first picture
         current_pic = setPicParameters(level, i_picture, session_name)
@@ -112,11 +130,7 @@ while True:
 
     # takes the complete input and processes it with grammar and learning algorithm to find the shapes the user referred to
     if event == "-ENTER-":
-        # disabling further keyboard input and unhiding feedback buttons
-        window["-INPUT-"].update(disabled=True)
-        window["-ENTER-"].update(visible=False)
-        window["-YES-"].unhide_row()
-
+        hiding_unhiding(event)
         # stemming in order to find e.g. plural and singular forms and map them to the same lexical entry
         inpt = sim_stemm(inpt.lower(),list(crude_lexicon))
 
@@ -174,12 +188,7 @@ while True:
     # parser has found the correct tree, learning algorithm updates the weights for lexical items
     # next picture is displayed
     if event == "-YES-":
-        # hiding and unhiding
-        window["-YES-"].hide_row()
-        window["-ENTER-"].unhide_row()
-        window["-INPUT-"].update(disabled=False)
-        window["-ENTER-"].update(visible=True)
-        window["-INPUT-"].update("")
+        hiding_unhiding(event)
 
         # updates weights
         weights = evaluate_semparse(inpt,lf,gram,lfs.list)
@@ -254,11 +263,7 @@ while True:
 
         # if we run out of options, show the next picture
         except StopIteration:
-            window["-YES-"].hide_row()
-            window["-ENTER-"].unhide_row()
-            window["-INPUT-"].update(disabled=False)
-            window["-ENTER-"].update(visible=True)
-            window["-INPUT-"].update("")
+            hiding_unhiding(event)
 
             if i_picture >= 10:
                 i_picture = 0
@@ -269,8 +274,8 @@ while True:
             # Katharina added following line
             create_all_blocks(current_pic)
             window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name))
-            eval_picture = str(picture_path(level, i_picture, session_name))
             window["-LEVEL-"].update("Level " + str(level) + ", Picture " + str(i_picture) + ":")
+            eval_picture = str(picture_path(level, i_picture, session_name))
 
     if event == "-NO2-":
         # go to the step one before
@@ -290,11 +295,7 @@ while True:
         # if we run out of options, show the next picture
         except StopIteration:
             print("HÄÄÄÄ")
-            window["-YES-"].hide_row()
-            window["-ENTER-"].unhide_row()
-            window["-INPUT-"].update(disabled=False)
-            window["-ENTER-"].update(visible=True)
-            window["-INPUT-"].update("")
+            hiding_unhiding(event)
 
             if i_picture >= 10:
                 i_picture = 0
@@ -310,12 +311,7 @@ while True:
 
     # skip if you accidentally entered a wrong input
     if event == "-SKIP-":
-        window["-YES-"].hide_row()
-        window["-ENTER-"].unhide_row()
-        window["-INPUT-"].update(disabled=False)
-        window["-ENTER-"].update(visible=True)
-
-        window["-INPUT-"].update("")
+        hiding_unhiding(event)
         
         with open(evaluation_file, "a", encoding="utf-8") as f:
             line = str(level) + "\t" + eval_picture + "\t" + eval_input + "\t" + eval_marked_picture + "\t" + "SKIPPED" + "\t" + str(lf) + "\n"
