@@ -323,11 +323,11 @@ def grouping(lfs):
     groups = defaultdict(list)
     for lf in lfs:
         if lf.semantic:
-            groups[lf.guessed_blocks].append(lf)
+            groups[frozenset(lf.guessed_blocks)].append(lf)
     return groups
 
 
-def main():
+if __name__ == "__main__":
     #creat_all_blocks(setPicParameters())
     gram = Grammar(gold_lexicon2, rules2, functions2)
     allblocks2 = []
@@ -338,12 +338,9 @@ def main():
                 allblocks2.append(blo)
     allblocks = allblocks2
 
-    lfs = gram.gen("a red circle there is")
+    lfs = gram.gen("a red triangle there is")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
         print(lf.guessed_blocks)
     print(grouping(lfs))
-
-if __name__ == "__main__":
-    main()

@@ -203,7 +203,7 @@ while True:
         lfs = BackAndForth_Iterator(gram.gen(inpt))
         print(lfs)
         # with grouping included so every marking will only appear once, doesnt work though
-        '''
+
         groups = grouping(gram.gen(inpt))
         blocks = BackAndForth_Iterator(list(groups.keys()))
         print(blocks)
@@ -213,12 +213,16 @@ while True:
             for b in groups[current_marking][0].guessed_blocks:
                 guess.append((b.y, b.x))
             print(guess)
+            current_pic.mark(guess)
+            window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name, guess=True))
+            # for evaluation file
+            eval_marked_picture = str(picture_path(level, i_picture, session_name, guess=True))
 
         except StopIteration:
-            pass'''
+            pass
 
         # mark first possible guess in the picture
-        try:
+        '''try:
             lf = lfs.next()
             while lf.semantic == False:
                 lf=lfs.next()
@@ -233,7 +237,7 @@ while True:
             # for evaluation file
             eval_marked_picture = str(picture_path(level, i_picture, session_name, guess=True))
         except StopIteration:
-            pass
+            pass'''
 
     # parser has found the correct tree, learning algorithm updates the weights for lexical items
     # next picture is displayed
