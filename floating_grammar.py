@@ -53,7 +53,9 @@ def create_lex_rules():
     """
     crude_rules = set()
     for key, value in gold_lexicon.items():
-        crude_rules.add(value[0])
+        for entry in value:
+            crude_rules.add((entry[0], entry[1], 0))
+        #crude_rules.add(value[0])
 
     return list(crude_rules)
 
@@ -65,13 +67,14 @@ class ParseItem:
     """
     :param categorie:
     """
-    def __init__(self,categorie,length,semantic,components,str_form,guesses):
+    def __init__(self, categorie, length, semantic, components, str_form, guesses, weight):
         self.c = categorie
         self.s = length
         self.semantic = semantic
         self.components = components
         self.formular = str_form
         self.guessed_blocks = guesses
+        self.summed_weights = weight
 
 
 
@@ -89,70 +92,76 @@ class Grammar:
         maxlen = len(words)+2
         chart = defaultdict(set)
         agenda = []
+
         # construct predicates according to utterance
         for word in words:
-            for categorie,function in self.lexicon[word]:
-                #try:
-                    #semantic = self.functions[function]
-                #except:
-                    #semantic = eval(function)
+            for categorie, function, weight in self.lexicon[word]:
                 semantic = None
-                item = ParseItem(categorie,1,semantic,{(word,function)}, function, guessed_blocks)
-                chart[categorie,1].add(item)
+                item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight)
+                chart[categorie, 1].add(item)
                 agenda.append(item)
+
         # TODO: construct predicates out of the air
         for function in functions:
             pass
+
         # construct longer formulas using this components:
         maxlen_currently = 1
-        while (maxlen_currently <= maxlen) and agenda :
+        while (maxlen_currently <= maxlen) and agenda:
             item = agenda.pop(0)
             s1 = item.s
             c1 = item.c
             components1 = item.components
-            semantic1 = item.semantic
             new_items = set()
-            for c2,s2 in chart:
-                #s_new = 1+s1+s2
+
+            for c2, s2 in chart:
                 s_new = s1+s2
                 if maxlen_currently < s_new:
                     maxlen_currently = s_new
+
                 if (c2,c1) in self.rules:
-                     c_new = self.rules[c2,c1]
-                     for item2 in chart[c2,s2]:
-                         #print(semantic1,item2.semantic,c1,item2.c)
+                     c_new = self.rules[c2, c1]
+                     for item2 in chart[c2, s2]:
                          semantic_new = None
-                         #print(semantic_new)
                          components_new = components1.union(item2.components)
                          function_new = item2.formular + "(" + item.formular + ")"
-                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new, guessed_blocks)
+                         weight_new = item.summed_weights + item2.summed_weights
+                         item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
+                                              weight_new)
                          agenda.append(item_new)
                          new_items.add(item_new)
+
                 if (c1,c2) in self.rules:
-                     c_new = self.rules[c1,c2]
-                     for item2 in chart[c2,s2]:
+                     c_new = self.rules[c1, c2]
+                     for item2 in chart[c2, s2]:
                          semantic_new = None
                          components_new = components1.union(item2.components)
                          function_new = item.formular + "(" + item2.formular + ")"
-                         item_new = ParseItem(c_new,s_new,semantic_new,components_new,function_new, guessed_blocks)
+                         weight_new = item.summed_weights + item2.summed_weights
+                         item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
+                                              weight_new)
                          agenda.append(item_new)
                          new_items.add(item_new)
+
             for new_item in new_items:
                 chart[new_item.c,new_item.s].add(new_item)
 
         results = []
         included_items = []
         for (c,s) in chart:
-            if c =='V':
+            if c == 'V':
                 for item in chart[c,s]:
                     item.semantic = self.sem(item)
                     item.guessed_blocks = guessed_blocks.copy()
                     guessed_blocks.clear()
+                    # if average of weights should be computed for the total weight of a formula include the line below
+                    # item.summed_weights = item.summed_weights / item.s
                     if self.check_member(included_items, item):
                         continue
                     else:
                         results.append(item)
                         included_items.append(item)
+
         return results
 
 
@@ -171,37 +180,37 @@ class Grammar:
         grammar = sys.modules[__name__]
         for key, val in list(self.functions.items()):
             setattr(grammar, key, val)
-        #return eval(lf[0][1])  # Interpret just the root node's semantics.
+        # Interpret semantics.
         return eval(lf.formular)
 
 
 gold_lexicon = {
-    'form':[('B', 'block_filter([], allblocks)')],
+    'form':[('B', 'block_filter([], allblocks)', 1)],
     'forms':[('B', 'block_filter([], allblocks)')],
-    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)')],
-    'squares': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)')],
-    'triangle': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)')],
-    'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)')],
-    'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)')],
-    'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)')],
-    'green': [('C', 'green')],
-    'yellow': [('C', 'yellow')],
-    'blue': [('C', 'blue')],
-    'red': [('C', 'red')],
-    'is': [('E', 'exist')],
-    'are': [('E', 'exist')],
-    'a':[('N','range(1,17)')],
-    'one':[('N','[1]')],
-    'two':[('N','[2]')],
-    'three':[('N','[3]')],
-    'under': [('POS', 'under')],
-    'over': [('POS', 'over')],
-    'next': [('POS', 'next')],
-    'left': [('POS', 'left')],
-    'right': [('POS', 'right')],
-    'and': [('CONJ', 'und')],
-    'or': [('CONJ', 'oder'),('CONJ','xoder')],
-    'epsilon': [('C', 'anycol')]
+    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)', 1)],
+    'squares': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)', 1)],
+    'triangle': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
+    'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
+    'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
+    'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
+    'green': [('C', 'green', 1)],
+    'yellow': [('C', 'yellow', 1)],
+    'blue': [('C', 'blue', 1)],
+    'red': [('C', 'red', 1)],
+    'is': [('E', 'exist', 1)],
+    'are': [('E', 'exist', 1)],
+    'a':[('N','range(1,17)', 1)],
+    'one':[('N','[1]', 1)],
+    'two':[('N','[2]', 1)],
+    'three':[('N','[3]', 1)],
+    'under': [('POS', 'under', 1)],
+    'over': [('POS', 'over', 1)],
+    'next': [('POS', 'next', 1)],
+    'left': [('POS', 'left', 1)],
+    'right': [('POS', 'right', 1)],
+    'and': [('CONJ', 'und', 1)],
+    'or': [('CONJ', 'oder', 1),('CONJ','xoder', 1)],
+    'epsilon': [('C', 'anycol', 1)]
 
 }
 
@@ -287,49 +296,61 @@ functions2 = {
 }
 
 gold_lexicon2 = {
-    'form':[('B', 'block_filter([], allblocks)')],
-    'forms':[('B', 'block_filter([], allblocks)')],
-    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)')],
-    'squares': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)')],
-    'triangle': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)')],
-    'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)')],
-    'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)')],
-    'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)')],
-    'green': [('C', 'green')],
-    'yellow': [('C', 'yellow')],
-    'blue': [('C', 'blue')],
-    'red': [('C', 'red')],
-    'there': [('E', 'identity')],
-    'is': [('I', 'exist')],
-    'are': [('I', 'exist')],
-    'a':[('N','range(1,17)')],
-    'one':[('N','[1]')],
-    'two':[('N','[2]')],
-    'three':[('N','[3]')],
-    'under': [('U', 'under')],
-    'over': [('U', 'over')],
-    'and': [('AND', 'und')],
-    'or': [('AND', 'oder'),('AND','xoder')],
-    'next': [('NEXT', 'next')],
-    'to': [('TO', 'identity')],
-    'of': [('TO', 'identity')],
-    'left': [('LR', 'left')],
-    'right': [('LR', 'right')],
-    'the': [('THE', 'identity')]
+    'form':[('B', 'block_filter([], allblocks)', 1)],
+    'forms':[('B', 'block_filter([], allblocks)', 1)],
+    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)', 1)],
+    'squares': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)', 1)],
+    'triangle': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
+    'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
+    'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
+    'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
+    'green': [('C', 'green', 1)],
+    'yellow': [('C', 'yellow', 1)],
+    'blue': [('C', 'blue', 1)],
+    'red': [('C', 'red', 1)],
+    'there': [('E', 'identity', 1)],
+    'is': [('I', 'exist', 1)],
+    'are': [('I', 'exist', 1)],
+    'a':[('N','range(1,17)', 1)],
+    'one':[('N','[1]', 1)],
+    'two':[('N','[2]', 1)],
+    'three':[('N','[3]', 1)],
+    'under': [('U', 'under', 1)],
+    'over': [('U', 'over', 1)],
+    'and': [('AND', 'und', 1)],
+    'or': [('AND', 'oder', 1),('AND','xoder', 1)],
+    'next': [('NEXT', 'next', 1)],
+    'to': [('TO', 'identity', 1)],
+    'of': [('TO', 'identity', 1)],
+    'left': [('LR', 'left', 1)],
+    'right': [('LR', 'right', 1)],
+    'the': [('THE', 'identity', 1)]
 
 }
 
 def grouping(lfs):
     groups = defaultdict(list)
+    max_weights = []
     for lf in lfs:
         if lf.semantic:
             groups[frozenset(lf.guessed_blocks)].append(lf)
-    return groups
+    #print(groups)
+    for grouped_items in groups.values():
+        grouped_items.sort(key=lambda p_item: p_item.summed_weights, reverse=True)
+    #print(groups)
+
+    for gue_bl, grouped_items in groups.items():
+        max_weights.append((gue_bl, grouped_items[0].summed_weights))
+
+    max_weights.sort(key=lambda  tuple: tuple[1], reverse=True)
+    sorted_guesses = [gue_bl for (gue_bl, weight) in max_weights]
+
+    return groups, sorted_guesses
 
 
 if __name__ == "__main__":
     #creat_all_blocks(setPicParameters())
-    gram = Grammar(gold_lexicon2, rules2, functions2)
+    gram = Grammar(gold_lexicon, rules, functions)
     allblocks2 = []
     all_blocks_grid = allblocks_test.copy()
     for row in allblocks_test:
@@ -338,9 +359,16 @@ if __name__ == "__main__":
                 allblocks2.append(blo)
     allblocks = allblocks2
 
-    lfs = gram.gen("a red triangle there is")
+    #lfs = gram.gen("is a red triangle over a blue triangle")
+    #lfs = gram.gen("is one red triangle over a blue triangle")
+    lfs = gram.gen("is a red triangle")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
         print(lf.guessed_blocks)
-    print(grouping(lfs))
+        print("weight: " + str(lf.summed_weights))
+        print("\n")
+    print("GROUPING")
+    g = grouping(lfs)
+    print(g[0])
+    print(g[1])
