@@ -147,7 +147,9 @@ class Grammar:
 
         # construct longer formulas using this components:
         maxlen_currently = 1
+        n_stucked = 0
         while (maxlen_currently <= maxlen):
+            prev_agenda_len = len(lex_agenda)
             for item in lex_agenda:
                 s1 = item.s
                 c1 = item.c
@@ -161,41 +163,50 @@ class Grammar:
                         maxlen_currently = s_new
 
                     if (c2,c1) in self.rules:
-                         c_new = self.rules[c2, c1]
-                         for item2 in chart[c2, s2]:
+                        c_new = self.rules[c2, c1]
+                        for item2 in chart[c2, s2]:
 
-                             new_incl, new_rem = check_preconditions(item, item2)
-                             if new_incl == None:
-                                 continue
-
-                             semantic_new = None
-                             components_new = components1.union(item2.components)
-                             function_new = item2.formular + "(" + item.formular + ")"
-                             weight_new = item.summed_weights + item2.summed_weights
-                             item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
+                            new_incl, new_rem = check_preconditions(item, item2)
+                            if not new_incl:
+                                continue
+                            stucked = False
+                            semantic_new = None
+                            components_new = components1.union(item2.components)
+                            function_new = item2.formular + "(" + item.formular + ")"
+                            weight_new = item.summed_weights + item2.summed_weights
+                            item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
                                                   weight_new, new_rem, new_incl)
-                             lex_agenda.append(item_new)
-                             new_items.add(item_new)
+                            if not self.check_member(lex_agenda, item_new):
+                                lex_agenda.append(item_new)
+                            new_items.add(item_new)
 
                     if (c1,c2) in self.rules:
-                         c_new = self.rules[c1, c2]
-                         for item2 in chart[c2, s2]:
+                        c_new = self.rules[c1, c2]
+                        for item2 in chart[c2, s2]:
 
-                             new_incl, new_rem = check_preconditions(item, item2)
-                             if new_incl == None:
-                                 continue
-
-                             semantic_new = None
-                             components_new = components1.union(item2.components)
-                             function_new = item.formular + "(" + item2.formular + ")"
-                             weight_new = item.summed_weights + item2.summed_weights
-                             item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
+                            new_incl, new_rem = check_preconditions(item, item2)
+                            if not new_incl:
+                                continue
+                            stucked = False
+                            semantic_new = None
+                            components_new = components1.union(item2.components)
+                            function_new = item.formular + "(" + item2.formular + ")"
+                            weight_new = item.summed_weights + item2.summed_weights
+                            item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
                                                   weight_new, new_rem, new_incl)
-                             lex_agenda.append(item_new)
-                             new_items.add(item_new)
+                            if not self.check_member(lex_agenda, item_new):
+                                lex_agenda.append(item_new)
+                            new_items.add(item_new)
 
                 for new_item in new_items:
                     chart[new_item.c,new_item.s].add(new_item)
+
+            # check whether parsing is stucked because not parse tree can be built
+            stucked = len(lex_agenda) == prev_agenda_len
+            if stucked:
+                n_stucked += 1
+            if n_stucked == 2:
+                break
 
         results = []
         included_items = []
