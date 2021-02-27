@@ -64,18 +64,18 @@ def hiding_unhiding(event):
         window["-YES-"].hide_row()
         window["-NEXTINSTR-"].hide_row()
         window["-NEXT-"].hide_row()
-    if event == "-ENTER-":
+    elif event == "-ENTER-":
         # disabling further keyboard input and unhiding feedback buttons
         window["-INPUT-"].update(disabled=True)
         window["-ENTER-"].update(visible=False)
         window["-YES-"].unhide_row()
-    if event == "-YES-":
+    elif event == "-YES-":
         window["-YES-"].hide_row()
         window["-ENTER-"].unhide_row()
         window["-INPUT-"].update(disabled=False)
         window["-ENTER-"].update(visible=True)
         window["-INPUT-"].update("")
-    if event == "-NO-" or "-NO2-" or "-SKIP-":
+    elif event == "-NO-" or "-NO2-" or "-SKIP-":
         window["-YES-"].hide_row()
         window["-ENTER-"].unhide_row()
         window["-INPUT-"].update(disabled=False)
@@ -144,14 +144,16 @@ while True:
                 for rule in crude_rule:
                     total_scores[word][rule]=0
         gram = Grammar(crude_lexicon,rules,functions)
-
+        print("checkpoint")
         # generate all possible trees given the current rules
-        lfs = BackAndForth_Iterator(gram.gen(inpt))
-        print(lfs)
+        #lfs = BackAndForth_Iterator(gram.gen(inpt))
+        #print(lfs)
         # with grouping included so every marking will only appear once, doesnt work though
-
-        groups = grouping(gram.gen(inpt))
-        blocks = BackAndForth_Iterator(list(groups.keys()))
+        parse = gram.gen(inpt)
+        print("parsing done")
+        groups, sortedguesses = grouping(parse)
+        print(sortedguesses)
+        blocks = BackAndForth_Iterator(sortedguesses)
         print(blocks)
         try:
             current_marking = blocks.next()
@@ -167,31 +169,14 @@ while True:
         except StopIteration:
             pass
 
-        # mark first possible guess in the picture
-        '''try:
-            lf = lfs.next()
-            while lf.semantic == False:
-                lf=lfs.next()
-            guess = []
-            for b in lf.guessed_blocks:
-                guess.append((b.y, b.x))
-            print(guess)
-
-            # mark the guessed blocks in the picture
-            current_pic.mark(guess)
-            window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name, guess=True))
-            # for evaluation file
-            eval_marked_picture = str(picture_path(level, i_picture, session_name, guess=True))
-        except StopIteration:
-            pass'''
-
     # parser has found the correct tree, learning algorithm updates the weights for lexical items
     # next picture is displayed
     if event == "-YES-":
         hiding_unhiding(event)
 
         # updates weights
-        weights = evaluate_semparse(inpt,lf,gram,lfs.list)
+        lf = groups[current_marking][0]
+        weights = evaluate_semparse(inpt,lf,gram,lfs.list) # what is lfs.list? How can we substitute it with the current structure? (the values of groups are parseItems = lfs)
         print("TEST",[weights[key] for key in weights],[0.0 for word in inpt],len(inpt.split()))
         if [weights[key] for key in weights] == [0.0 for word in inpt.split()]:
             print("Works!")
@@ -232,6 +217,7 @@ while True:
                 window["-DESCRIPTION-"].update(level3)
             else:
                 print("thank you for participating!")
+                break
         i_picture += 1
 
         # initialize new picture
@@ -246,16 +232,14 @@ while True:
         eval_attempts = 0
 
     # parsing tree was not correct, produce new guess
-    if event == "-NO-":
+    if event == "-NO-": # next
         # produce new guess (as above)
         try:
-            lf = lfs.next()
-            while lf.semantic == False:
-                lf = lfs.next()
+            current_marking = blocks.next()
             guess = []
-            print("GUESSEDBLOCKS",lf.guessed_blocks)
-            for b in lf.guessed_blocks:
+            for b in groups[current_marking][0].guessed_blocks:
                 guess.append((b.y, b.x))
+            print(guess)
             current_pic.mark(guess)
             window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name, guess=True))
             eval_marked_picture = str(picture_path(level, i_picture, session_name, guess=True))
@@ -277,20 +261,18 @@ while True:
             window["-LEVEL-"].update("Level " + str(level) + ", Picture " + str(i_picture) + ":")
             eval_picture = str(picture_path(level, i_picture, session_name))
 
-    if event == "-NO2-":
+    if event == "-NO2-": # previous
         # go to the step one before
         try:
-            lf = lfs.previous()
-            while lf.semantic == False:
-                lf = lfs.previous()
+            current_marking = blocks.previous()
             guess = []
-            print("GUESSEDBLOCKS", lf.guessed_blocks)
-            for b in lf.guessed_blocks:
+            #print("GUESSEDBLOCKS", lf.guessed_blocks)
+            for b in groups[current_marking][0].guessed_blocks:
                 guess.append((b.y, b.x))
             current_pic.mark(guess)
             window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name, guess=True))
             eval_marked_picture = str(picture_path(level, i_picture, session_name, guess=True))
-            eval_attempts += 1
+            eval_attempts -= 1
 
         # if we run out of options, show the next picture
         except StopIteration:
