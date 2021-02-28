@@ -14,7 +14,7 @@ from back_and_forth import BackAndForth_Iterator
 # inizializing grammar and learning algorithm
 crude_lexicon={}
 crude_rule = create_lex_rules()
-threshold = -0.5
+threshold = -0.1
 total_scores = defaultdict(lambda:defaultdict(int))
 
 # initializing the windows
@@ -187,13 +187,15 @@ while True:
         else:
             for w in weights:
                 if len(w)==2:
-                    rule,word = w
+                    word,rule = w
                     score = weights[w]
                     total_scores[word][rule]+=score
                     if total_scores[word][rule]<=threshold :
                         del total_scores[word][rule]
                         print("DELETE:",word,rule)
-                        crude_lexicon[word].remove(rule)       
+                        for r in crude_lexicon[word][:]:
+                            if r[1] == rule:
+                                crude_lexicon[word].remove(r)       
        
         gram = Grammar(crude_lexicon,rules,functions)
         for word in crude_lexicon:
