@@ -114,7 +114,7 @@ def evaluate_semparse(u,lfs,grammar,allparses): # We give evaluate_semparse an u
                        classes=allparses,
                        true_or_false=grammar.sem,# We want only lf with denotation True. To test that we give this additional argument to evaluate
                        T=10,
-                       eta=0.2)#0.1
+                       eta=0.1)#0.1
     return weights # We return the weights so that we can use it for removing unlikely rules from the lexicon
     
 
