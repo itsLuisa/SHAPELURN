@@ -126,7 +126,9 @@ def LatentSGD(D=None, phi=None, classes=None, T=10, eta=0.1, output_transform=No
 
 def cost(y, y_prime):
     """Cost function used by `SGD` (above) and `LatentSGD` (below)."""
-    return 0.0 if y.components == y_prime.components else 1.0
+    #return 0.0 if y.components == y_prime.components else 1.0
+    costs = [0.0 if x in y_prime.components else 1.0 for x in y.components]
+    return sum(costs)/len(costs)
 
 def evaluate(
         phi=None, 
