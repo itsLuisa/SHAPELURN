@@ -133,7 +133,7 @@ while True:
         hiding_unhiding(event)
         # stemming in order to find e.g. plural and singular forms and map them to the same lexical entry
         inpt = sim_stemm(inpt.lower(),list(crude_lexicon))
-
+        
         # for storing in evaluation file
         eval_input = inpt
 
@@ -175,8 +175,8 @@ while True:
         hiding_unhiding(event)
 
         # updates weights
-        lf = groups[current_marking][0]
-        weights = evaluate_semparse(inpt,lf,gram,lfs.list) # what is lfs.list? How can we substitute it with the current structure? (the values of groups are parseItems = lfs)
+        lf = groups[current_marking]
+        weights = evaluate_semparse(inpt,lf,gram,parse) # what is lfs.list? How can we substitute it with the current structure? (the values of groups are parseItems = lfs)
         print("TEST",[weights[key] for key in weights],[0.0 for word in inpt],len(inpt.split()))
         if [weights[key] for key in weights] == [0.0 for word in inpt.split()]:
             print("Works!")

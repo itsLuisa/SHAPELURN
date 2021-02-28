@@ -96,7 +96,7 @@ def phi_sem(x, y):
     return l"""
 
 
-def evaluate_semparse(u,lf,grammar,lfs): # We give evaluate_semparse an utterance, an lf and a grammar as arguments so wen can use it for our interactive game
+def evaluate_semparse(u,lfs,grammar,allparses): # We give evaluate_semparse an utterance, an lf and a grammar as arguments so wen can use it for our interactive game
     """Evaluate the semantic parsing set-up, where we learn from and 
     predict logical forms. The set-up is identical to the simple 
     example in evenodd.py, except that classes is gram.gen, which 
@@ -104,14 +104,14 @@ def evaluate_semparse(u,lf,grammar,lfs): # We give evaluate_semparse an utteranc
     print("======================================================================")
     print("SEMANTIC PARSING")
     # Only (input, lf) pairs for this task:
-    sem_utterance=[[u, lf, grammar.sem(lf)]] # This replaces semdata
+    sem_utterance=[[u, lf, lf.semantic] for lf in lfs] # This replaces semdata
     semparse_train = [[x,y] for x, y, d in sem_utterance]
     semparse_test = [[x,y] for x, y, d in sem_utterance]        
     weights = evaluate(phi=phi_sem,      # We let evaluate return the weights and store them
                        optimizer=SGD,
                        train=semparse_train,
                        test=semparse_test,
-                       classes=lfs,
+                       classes=allparses,
                        true_or_false=grammar.sem,# We want only lf with denotation True. To test that we give this additional argument to evaluate
                        T=10,
                        eta=0.1)
