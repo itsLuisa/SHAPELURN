@@ -67,7 +67,7 @@ class ParseItem:
     """
     :param categorie:
     """
-    def __init__(self, categorie, length, semantic, components, str_form, guesses, weight, rem_words, incl_words):
+    def __init__(self, categorie, length, semantic, components, str_form, guesses, weight):
         self.c = categorie
         self.s = length
         self.semantic = semantic
@@ -75,40 +75,6 @@ class ParseItem:
         self.formular = str_form
         self.guessed_blocks = guesses
         self.summed_weights = weight
-        self.rem_words = rem_words
-        self.incl_words = incl_words
-
-
-def check_preconditions(pi_1, pi_2):
-    flag1 = False
-    flag2 = False
-
-    if len(pi_1.incl_words) <= len(pi_2.rem_words):
-        flag1 = True
-        temp_list = pi_2.rem_words.copy()
-        for w in pi_1.incl_words:
-            try:
-                temp_list.remove(w)
-            except:
-                flag1 = False
-
-    if len(pi_2.incl_words) <= len(pi_1.rem_words):
-        flag2 = True
-        temp_list = pi_1.rem_words.copy()
-        for w in pi_2.incl_words:
-            try:
-                temp_list.remove(w)
-            except:
-                flag2 = False
-
-    if flag1 and flag2:
-        new_incl = pi_1.incl_words + pi_2.incl_words
-        new_rem = pi_1.incl_words.copy() + pi_1.rem_words.copy()
-        for w in new_incl:
-            new_rem.remove(w)
-        return new_incl, new_rem
-    else:
-        return None, None
 
 
 
@@ -125,88 +91,74 @@ class Grammar:
         words = s.split()
         maxlen = len(words)+2
         chart = defaultdict(set)
-        lex_agenda = []
+        agenda = []
 
         # construct predicates according to utterance
         for word in words:
             for categorie, function, weight in self.lexicon[word]:
                 semantic = None
-                remaining_words = words.copy()
-                remaining_words.remove(word)
-                item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight, remaining_words, [word])
+                item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight)
                 chart[categorie, 1].add(item)
-                lex_agenda.append(item)
+                agenda.append(item)
 
-
-        # TODO: construct predicates out of the air
-        # TODO: not really tested yet if this works correctly
+        # constructs predicates out of the air
+        # TODO: not really tested yet if this works correctly in combination with the gui
         for (categorie, function, weight) in out_of_air:
-            item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, weight, words, [])
-            lex_agenda.append(item)
-
+            item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, weight)
+            agenda.append(item)
 
         # construct longer formulas using this components:
         maxlen_currently = 1
-        n_stucked = 0
-        while (maxlen_currently <= maxlen):
-            prev_agenda_len = len(lex_agenda)
-            for item in lex_agenda:
-                s1 = item.s
-                c1 = item.c
-                components1 = item.components
-                new_items = set()
+        while (maxlen_currently <= maxlen) and agenda:
+            item = agenda.pop(0)
+            s1 = item.s
+            c1 = item.c
+            components1 = item.components
+            new_items = set()
 
-                for c2, s2 in chart:
+            for c2, s2 in chart:
+                s_new = s1+s2
+                if maxlen_currently < s_new:
+                    maxlen_currently = s_new
 
-                    s_new = s1+s2
-                    if maxlen_currently < s_new:
-                        maxlen_currently = s_new
+                if (c2,c1) in self.rules:
+                     c_new = self.rules[c2, c1]
+                     for item2 in chart[c2, s2]:
+                         semantic_new = None
+                         components_new = components1.union(item2.components)
+                         function_new = item2.formular + "(" + item.formular + ")"
+                         weight_new = item.summed_weights + item2.summed_weights
+                         item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
+                                              weight_new)
 
-                    if (c2,c1) in self.rules:
-                        c_new = self.rules[c2, c1]
-                        for item2 in chart[c2, s2]:
+                         # check that new ParseItem is not already on the agenda
+                         if not self.check_member(agenda, item_new):
+                             agenda.append(item_new)
+                         
+                         new_items.add(item_new)
 
-                            new_incl, new_rem = check_preconditions(item, item2)
-                            if not new_incl:
-                                continue
-                            stucked = False
-                            semantic_new = None
-                            components_new = components1.union(item2.components)
-                            function_new = item2.formular + "(" + item.formular + ")"
-                            weight_new = item.summed_weights + item2.summed_weights
-                            item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
-                                                  weight_new, new_rem, new_incl)
-                            if not self.check_member(lex_agenda, item_new):
-                                lex_agenda.append(item_new)
-                            new_items.add(item_new)
+                if (c1,c2) in self.rules:
+                     c_new = self.rules[c1, c2]
+                     for item2 in chart[c2, s2]:
+                         semantic_new = None
+                         components_new = components1.union(item2.components)
+                         function_new = item.formular + "(" + item2.formular + ")"
+                         weight_new = item.summed_weights + item2.summed_weights
+                         item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
+                                              weight_new)
+                         # check that new ParseItem is not already on the agenda
+                         if not self.check_member(agenda, item_new):
+                             agenda.append(item_new)
+                         
+                         new_items.add(item_new)
 
-                    if (c1,c2) in self.rules:
-                        c_new = self.rules[c1, c2]
-                        for item2 in chart[c2, s2]:
-
-                            new_incl, new_rem = check_preconditions(item, item2)
-                            if not new_incl:
-                                continue
-                            stucked = False
-                            semantic_new = None
-                            components_new = components1.union(item2.components)
-                            function_new = item.formular + "(" + item2.formular + ")"
-                            weight_new = item.summed_weights + item2.summed_weights
-                            item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
-                                                  weight_new, new_rem, new_incl)
-                            if not self.check_member(lex_agenda, item_new):
-                                lex_agenda.append(item_new)
-                            new_items.add(item_new)
-
-                for new_item in new_items:
+            print("ITEM " + item.formular)
+            for new_item in new_items:
+                # check that only ParseItems that are not already in the chart are added
+                print(new_item.formular)
+                chart_list = list(chart[new_item.c, new_item.s].copy())
+                if not self.check_member(chart_list, new_item):
                     chart[new_item.c,new_item.s].add(new_item)
-
-            # check whether parsing is stucked because not parse tree can be built
-            stucked = len(lex_agenda) == prev_agenda_len
-            if stucked:
-                n_stucked += 1
-            if n_stucked == 2:
-                break
 
         results = []
         included_items = []
@@ -228,6 +180,12 @@ class Grammar:
 
 
     def check_member(self, p_item_list, p_item):
+        """
+        checks for an ParseItem and a list of ParseItems whether there is already a ParseItem with the same formular and the same components in the list
+        :param p_item_list: a list of ParseItem objects
+        :param p_item: a ParseItem object
+        :return: True or False
+        """
         for pi in p_item_list:
             if pi.formular == p_item.formular and pi.components == p_item.components:
                 return True
@@ -271,15 +229,13 @@ gold_lexicon = {
     'left': [('POS', 'left', 1)],
     'right': [('POS', 'right', 1)],
     'and': [('CONJ', 'und', 1)],
-    'or': [('CONJ', 'oder', 1),('CONJ','xoder', 1)],
+    'or': [('CONJ', 'oder', 1),('CONJ','xoder', 1)]
 
 }
 
 out_of_air = [
     ('C', 'anycol', 1)
 ]
-
-
 
 rules = {
  ('EN','BC'):'V',
@@ -294,7 +250,6 @@ rules = {
  ('POS_NB','BC'):'BS',
 
 }
-
 
 
 
@@ -320,78 +275,6 @@ functions = {
 
 
 
-rules2 = {
- ('EN','B'): 'V',
- ('EN','BS'):'V',
- ('VAND','V'):'V',
- ('I','N'):'EN',
- ('E','I'):'I',
- ('C','B'):'B',
- ('L','B'):'BS',
- ('POS','B'):'L',
- ('POS','BS'):'L',
- ('PP','N'):'POS',
- ('TO','NEXT'):'PP',
- ('TS','SIDE'):'PP',
- ('TO','THE'):'TS',
- ('TO','LR'):'SIDE',
- ('AND','V'):'VAND'
-}
-
-
-
-
-functions2 = {
-    'identity': (lambda x: x),
-    'exist': (lambda n: (lambda b: update_guess(b) and len(b) in n)),
-    'und': (lambda v1: (lambda v2: v1 and v2)),
-    'oder': (lambda v1: (lambda v2: v1 or v2)),
-    'xoder': (lambda v1: (lambda v2: (v1 and not v2) or (v2 and not v1))),
-
-    'blue': (lambda x: block_filter([(lambda b:b.colour == "blue")], x)),
-    'red': (lambda x: block_filter([(lambda b:b.colour == "red")], x)),
-    'green': (lambda x: block_filter([(lambda b:b.colour == "green")], x)),
-    'yellow':(lambda x: block_filter([(lambda b:b.colour == "yellow")], x)),
-
-    'under': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "u")))),
-    'over': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "o")))),
-    'next': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "n")))),
-    'left': (lambda n: (lambda x: (lambda y:position_test(y, x, n, "l")))),
-    'right': (lambda n: (lambda x: (lambda y: position_test(y, x, n, "r"))))
-}
-
-gold_lexicon2 = {
-    'form':[('B', 'block_filter([], allblocks)', 1)],
-    'forms':[('B', 'block_filter([], allblocks)', 1)],
-    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)', 1)],
-    'squares': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)', 1)],
-    'triangle': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
-    'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
-    'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
-    'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
-    'green': [('C', 'green', 1)],
-    'yellow': [('C', 'yellow', 1)],
-    'blue': [('C', 'blue', 1)],
-    'red': [('C', 'red', 1)],
-    'there': [('E', 'identity', 1)],
-    'is': [('I', 'exist', 1)],
-    'are': [('I', 'exist', 1)],
-    'a':[('N','range(1,17)', 1)],
-    'one':[('N','[1]', 1)],
-    'two':[('N','[2]', 1)],
-    'three':[('N','[3]', 1)],
-    'under': [('U', 'under', 1)],
-    'over': [('U', 'over', 1)],
-    'and': [('AND', 'und', 1)],
-    'or': [('AND', 'oder', 1),('AND','xoder', 1)],
-    'next': [('NEXT', 'next', 1)],
-    'to': [('TO', 'identity', 1)],
-    'of': [('TO', 'identity', 1)],
-    'left': [('LR', 'left', 1)],
-    'right': [('LR', 'right', 1)],
-    'the': [('THE', 'identity', 1)]
-
-}
 
 def grouping(lfs):
     groups = defaultdict(list)
@@ -425,9 +308,8 @@ if __name__ == "__main__":
     allblocks = allblocks2
 
     #lfs = gram.gen("is a red triangle over a blue triangle")
-    #lfs = gram.gen("is one red triangle over a red triangle")
+    lfs = gram.gen("is one red triangle over a blue triangle")
     #lfs = gram.gen("is a red triangle")
-    lfs = gram.gen("is a triangle")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
@@ -438,3 +320,4 @@ if __name__ == "__main__":
     g = grouping(lfs)
     print(g[0])
     print(g[1])
+
