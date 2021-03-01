@@ -177,13 +177,20 @@ while True:
         # updates weights
         lf = groups[current_marking]
         weights = evaluate_semparse(inpt,lf,gram,parse) # what is lfs.list? How can we substitute it with the current structure? (the values of groups are parseItems = lfs)
-        print("TEST",[weights[key] for key in weights],[0.0 for word in inpt],len(inpt.split()))
-        if [weights[key] for key in weights] == [0.0 for word in inpt.split()]:
+        if all([weights[key]==0 for key in weights]):
             print("Works!")
+            word_rule = defaultdict(set)
             for w in weights:
                 if len(w)==2:
-                    rule,word = w
-                    crude_lexicon[word]=[rule]
+                    word,rule=w
+                    word_rule[word].add(rule)
+            for word in word_rule:
+                if word in crude_lexicon:
+                    for categorie,rule,prob in crude_lexicon[word][:]:
+                        if not rule in word_rule[word]:
+                            crude_lexicon[word].remove((categorie,rule,prob))
+                    
+                    
         else:
             for w in weights:
                 if len(w)==2:
