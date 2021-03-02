@@ -109,7 +109,8 @@ class Grammar:
 
         # construct longer formulas using this components:
         maxlen_currently = 1
-        while (maxlen_currently <= maxlen) and agenda:
+        #while (maxlen_currently <= maxlen) and agenda:
+        while agenda:
             item = agenda.pop(0)
             s1 = item.s
             c1 = item.c
@@ -152,10 +153,10 @@ class Grammar:
                          
                          new_items.add(item_new)
 
-            print("ITEM " + item.formular)
+            #print("ITEM " + item.formular)
             for new_item in new_items:
                 # check that only ParseItems that are not already in the chart are added
-                print(new_item.formular)
+                #print(new_item.formular)
                 chart_list = list(chart[new_item.c, new_item.s].copy())
                 if not self.check_member(chart_list, new_item):
                     chart[new_item.c,new_item.s].add(new_item)
