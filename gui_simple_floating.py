@@ -20,6 +20,7 @@ total_scores = defaultdict(lambda:defaultdict(int))
 # initializing the windows
 start = sg.Window("Hello!", layout_starting_screen)
 actualgame = sg.Window("SHAPELURN", layout_game_screen, return_keyboard_events=True)
+#levelup = sg.Window("SHAPELURN", layout_level_up_screen)
 window = start
 
 # define starting point
@@ -32,7 +33,7 @@ eval_attempts = 0
 level1 = "only describe one block, e.g.: 'There is a red circle'"
 level2 = "describe one or more blocks, e.g: 'There are two blue forms'"
 level3 = "Now you can describe relations between blocks and use conjunction, \n e.g.: 'There is a red circle under a blue square'"
-
+level4 = "Describe whatever you want!"
 
 def picture_path(level, i_picture, session_name, guess=False):
     """
@@ -225,6 +226,8 @@ while True:
             elif level == 3:
                 window["-DESCRIPTION-"].update(level3)
                 gram.extend_crude_lexicon()
+            elif level == 4:
+                window["-DESCRIPTION-"].update(level4)
             else:
                 print("thank you for participating!")
                 break
