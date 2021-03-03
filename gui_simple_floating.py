@@ -29,9 +29,9 @@ n = 1
 eval_attempts = 0
 
 # level descriptions
-level1 = "only describe one block, e.g.: 'There is a red circle'"
-level2 = "describe one or more blocks, e.g: 'There are two blue forms'"
-level3 = "describe relations between blocks, e.g.: 'There is a red circle under a blue square'"
+level1 = "Only describe one block, e.g.: 'There is a red circle'"
+level2 = "Describe one or more blocks, e.g: 'There are two blue forms'"
+level3 = "Now you can describe relations between blocks and use conjunction, \n e.g.: 'There is a red circle under a blue square'"
 
 
 def picture_path(level, i_picture, session_name, guess=False):
@@ -224,6 +224,7 @@ while True:
                 window["-DESCRIPTION-"].update(level2)
             elif level == 3:
                 window["-DESCRIPTION-"].update(level3)
+                gram.extend_crude_lexicon()
             else:
                 print("thank you for participating!")
                 break

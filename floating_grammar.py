@@ -49,17 +49,15 @@ def update_guess(blocks):
 def create_lex_rules():
     """
     creates the crude lexical rules for learning from scratch
-    :return: list containing all lists from gold lexicon with the (category, logical form) tuples
+    :return: set containing all lists from gold lexicon with the (category, logical form) tuples
     """
     crude_rules = set()
-    for key, value in gold_lexicon.items():
+    for key, value in gold_lexicon_basic.items():
         for entry in value:
             crude_rules.add((entry[0], entry[1], 0))
         #crude_rules.add(value[0])
 
     return list(crude_rules)
-
-
 
 
 
@@ -86,10 +84,21 @@ class Grammar:
         self.functions = functions
         self.rules = rules
 
+
+    def extend_crude_lexicon(self):
+        """
+        :return:
+        """
+        for key, value in gold_lexicon_extended.items():
+            for entry in value:
+                self.lexicon.add((entry[0], entry[1], 0))
+
+
     def gen(self,s):
         """ Floating Parser"""
         words = s.split()
         maxlen = len(words)+2
+        print(maxlen)
         chart = defaultdict(set)
         agenda = []
 
@@ -119,6 +128,8 @@ class Grammar:
 
             for c2, s2 in chart:
                 s_new = s1+s2
+                print(s_new)
+                print(maxlen_currently)
                 if maxlen_currently < s_new:
                     maxlen_currently = s_new
 
@@ -132,11 +143,12 @@ class Grammar:
                          item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
                                               weight_new)
 
-                         # check that new ParseItem is not already on the agenda
-                         if not self.check_member(agenda, item_new):
-                             agenda.append(item_new)
+                         if s_new <= maxlen:
+                            # check that new ParseItem is not already on the agenda
+                            if not self.check_member(agenda, item_new):
+                                agenda.append(item_new)
                          
-                         new_items.add(item_new)
+                            new_items.add(item_new)
 
                 if (c1,c2) in self.rules:
                      c_new = self.rules[c1, c2]
@@ -147,11 +159,12 @@ class Grammar:
                          weight_new = item.summed_weights + item2.summed_weights
                          item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
                                               weight_new)
-                         # check that new ParseItem is not already on the agenda
-                         if not self.check_member(agenda, item_new):
-                             agenda.append(item_new)
+                         if s_new <= maxlen:
+                            # check that new ParseItem is not already on the agenda
+                            if not self.check_member(agenda, item_new):
+                                agenda.append(item_new)
                          
-                         new_items.add(item_new)
+                            new_items.add(item_new)
 
             #print("ITEM " + item.formular)
             for new_item in new_items:
@@ -205,7 +218,7 @@ class Grammar:
         return eval(lf.formular)
 
 
-gold_lexicon = {
+gold_lexicon_basic = {
     'form':[('B', 'block_filter([], allblocks)', 1)],
     'forms':[('B', 'block_filter([], allblocks)')],
     'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)', 1)],
@@ -223,20 +236,23 @@ gold_lexicon = {
     'a':[('N','range(1,17)', 1)],
     'one':[('N','[1]', 1)],
     'two':[('N','[2]', 1)],
-    'three':[('N','[3]', 1)],
+    'three':[('N','[3]', 1)]
+
+}
+
+gold_lexicon_extended = {
     'under': [('POS', 'under', 1)],
     'over': [('POS', 'over', 1)],
     'next': [('POS', 'next', 1)],
     'left': [('POS', 'left', 1)],
     'right': [('POS', 'right', 1)],
     'and': [('CONJ', 'und', 1)],
-    'or': [('CONJ', 'oder', 1),('CONJ','xoder', 1)]
-
+    'or': [('CONJ', 'oder', 1), ('CONJ', 'xoder', 1)]
 }
 
-out_of_air = [
+out_of_air = {
     ('C', 'anycol', 1)
-]
+}
 
 rules = {
  ('EN','BC'):'V',
@@ -275,8 +291,6 @@ functions = {
 
 
 
-
-
 def grouping(lfs):
     groups = defaultdict(list)
     max_weights = []
@@ -299,6 +313,8 @@ def grouping(lfs):
 
 if __name__ == "__main__":
     #creat_all_blocks(setPicParameters())
+    gold_lexicon = gold_lexicon_basic.copy()
+    gold_lexicon.update(gold_lexicon_extended)
     gram = Grammar(gold_lexicon, rules, functions)
     allblocks2 = []
     all_blocks_grid = allblocks_test.copy()
@@ -309,8 +325,9 @@ if __name__ == "__main__":
     allblocks = allblocks2
 
     #lfs = gram.gen("is a red triangle over a blue triangle")
-    lfs = gram.gen("is one red triangle over a blue triangle")
+    #lfs = gram.gen("is one red triangle over a blue triangle")
     #lfs = gram.gen("is a red triangle")
+    lfs = gram.gen("is a red triangle and a red triangle")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
