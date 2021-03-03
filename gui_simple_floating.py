@@ -102,8 +102,10 @@ while True:
     if event == "-START-":
         os.mkdir(session_name)
         evaluation_file = "./" + session_name + "/evaluation.csv"
+        rule_probs = dict()
+        learning = defaultdict(int)
         with open(evaluation_file, "w", encoding="utf-8") as f:
-            first_line = "n\tlevel\tpicture\tinput\tmarked_picture\tattempts\ttree\n"
+            first_line = "n\tlevel\tn_pic\tpicture_path\tguess_path\tinput\tattempts\tn_deleted_rules\tn_guessed_blocks\n"
             f.writelines(first_line)
         # closing the the start window to start the actual game window
         window.close()
@@ -174,7 +176,7 @@ while True:
     # next picture is displayed
     if event == "-YES-":
         hiding_unhiding(event)
-
+        n_deleted_rules = 0
         # updates weights
         lf = groups[current_marking]
         weights = evaluate_semparse(inpt,lf,gram,parse) # what is lfs.list? How can we substitute it with the current structure? (the values of groups are parseItems = lfs)
@@ -201,6 +203,7 @@ while True:
                     if total_scores[word][rule]<=threshold :
                         del total_scores[word][rule]
                         print("DELETE:",word,rule)
+                        n_deleted_rules += 1
                         for r in crude_lexicon[word][:]:
                             if r[1] == rule:
                                 crude_lexicon[word].remove(r)       
@@ -208,12 +211,21 @@ while True:
         gram = Grammar(crude_lexicon,rules,functions)
         for word in crude_lexicon:
             print(word,len(crude_lexicon[word]))
+            #print(crude_lexicon[word])
+        #print(total_scores)
+        #print(weights)
 
+        for rule, val in list(weights.items()):
+            learning[rule] += val
+        rule_probs[n] = learning
+        lf1 = lf[0]
+        #print(lf1.c, lf1.s, lf1.semantic, lf1.components, lf1.formular, lf1.guessed_blocks, lf1.summed_weights)
         # writes information about the round into the evaluation file
+        n_guessed_blocks = len(guess)
         eval_response = "yes"
         eval_attempts += 1
         with open(evaluation_file, "a", encoding="utf-8") as f:
-            line = str(n) + "\t" + str(level) + "\t" + eval_picture + "\t" + eval_input + "\t" + eval_marked_picture + "\t" + str(eval_attempts) + "\t" + str(lf) + "\n"
+            line = str(n) + "\t" + str(level) + "\t" + str(i_picture) + "\t" + eval_picture + "\t" + eval_marked_picture + "\t" + eval_input + "\t" + str(eval_attempts) + "\t" + str(n_deleted_rules) + "\t" + str(n_guessed_blocks) + "\n"
             f.writelines(line)
 
         # update the level display
@@ -309,7 +321,7 @@ while True:
         hiding_unhiding(event)
         
         with open(evaluation_file, "a", encoding="utf-8") as f:
-            line = str(level) + "\t" + eval_picture + "\t" + eval_input + "\t" + eval_marked_picture + "\t" + "SKIPPED" + "\t" + str(lf) + "\n"
+            line = str(n) +"\t"+ str(level)  +"\t"+str(i_picture) + "\t" + eval_picture + "\t" + eval_marked_picture + "\t" + eval_input + "\t" + "NA" + "\t" + "NA" + "\t" + "NA" + "\n"
             f.writelines(line)
 
         current_pic = setPicParameters(level, i_picture, session_name)
@@ -323,3 +335,9 @@ while True:
        
 
 window.close()
+
+for i in learning:
+    print(i, learning[i])
+# open a new file with rule probabilities here
+#with open("rule_probs.csv", "w", encoding="utf-8") as g:
+    #pass
