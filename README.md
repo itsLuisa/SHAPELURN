@@ -48,7 +48,7 @@ Our parsing and learning framework is based on Liang, Percy and Christopher Pott
 * BlockPictureGenerator.py: automatically creates and saves the pictures **documented**
 * CalculCoordinates.py: used to calculate the coordinates for the picture generation in BlockPictureGenerator.py **documented**
 * cosimforstem.py: cosine similarity based heuristic for stemming words from an unknown language **documented**
-* PictureLevel.py: generates a picture for a specified level by calling BlockPictureGenerator.py with corresponding parameters 
+* PictureLevel.py: generates a picture for a specified level by calling BlockPictureGenerator.py with corresponding parameters **documented**
 * Semantic_Learner.py:  
 * eval_helper.py: functions needed in grammar.py to evaluate truth of description **documented**
 * floating_grammar.py: defines the grammer, the evalation of logical forms and the floating parser **documented**
