@@ -4,6 +4,19 @@ from itertools import product
 from eval_helper import *
 from world import *
 
+"""
+Defines our grammar: the lexicon (which is used without the keys in the game when learning from scratch), the CFG rules
+and the functions on how to evaluate the logical forms with respect to a current Picture Object
+It also includes the floating parser used to parse the input utterances and convert into logical forms
+
+Terminology:
+Difference between referenced and guessed blocks:
+for sentences like "there is a red circle" both refer to the same Block objects, i.e. the objects of all red circles in the Picture
+but for e.g. the sentence "there is a green triangle over a red square over a circle" referenced blocks consists of
+all green triangles that are over red squares that are over any circle
+whereas guessed blocks consists of all green triangles, red squares and circles that make this sentence true
+"""
+
 # variable to store all blocks of the current picture
 allblocks = []
 # variable to store the guessed blocks for an input utterance
@@ -55,7 +68,6 @@ def create_lex_rules():
     for key, value in gold_lexicon_basic.items():
         for entry in value:
             crude_rules.add((entry[0], entry[1], 0))
-        #crude_rules.add(value[0])
 
     return list(crude_rules)
 
@@ -63,9 +75,27 @@ def create_lex_rules():
 
 class ParseItem:
     """
-    :param categorie:
+    Objects representing the logical formulas that the floating parser builds up step by step
+    c: string, category of the formula
+    s: int, size of the formula (= out of how many subformulas it is built)
+    semantic: Truth value of the formula when evaluated with respect to a picture; None if the formula is not a complete
+                formula, i.e. if c is not "V"
+    components: set of pairs of words from the utterance and the lexical rule paired with it by the parser
+    formular: string representation of the formula
+    guessed_blocks: list of Block Objects, list of the guessed blocks when formular is evaluate w.r.t a given picture
+                    the list is empty if formula is not complete yet, i.e. if c is not "V"
+    summed_weights: float, sum of the weights of the subformulas
     """
     def __init__(self, categorie, length, semantic, components, str_form, guesses, weight):
+        """
+        :param categorie: string, category of the formula
+        :param length: int, size of the formula
+        :param semantic: Truth value of the formula or None
+        :param components: set of pairs of words from the utterance and the lexical rule paired with it by the parser
+        :param str_form: string representation of the formula
+        :param guesses: list of Block Objects or empty list
+        :param weight: float, weight of the formula
+        """
         self.c = categorie
         self.s = length
         self.semantic = semantic
@@ -74,7 +104,12 @@ class ParseItem:
         self.guessed_blocks = guesses
         self.summed_weights = weight
 
-
+"""
+The framework below is taken from Potts & Liang
+We defined our own lexicon, rules and  functions and extended the main function demonstrating our grammar framework
+The Grammar class was taken from Potts & Liang and we kept the sem function but replaced methods for the actual parsing
+with an implementation of the floating parser instead of the basic cky parser
+"""
 
 class Grammar:
 
@@ -87,6 +122,7 @@ class Grammar:
 
     def extend_crude_lexicon(self):
         """
+        extend the lexicon of the grammar by the lexical rules from gold_lexicon_extended
         :return:
         """
         for key, value in gold_lexicon_extended.items():
@@ -95,14 +131,24 @@ class Grammar:
 
 
     def gen(self,s):
-        """ Floating Parser"""
+        """
+        The Floating Parser
+        :param s: string, the input utterance
+        :return: a list of all ParseItems that correspond to all possible logical formulas of category "V" that can be
+                generated for the input utterance based on the grammar
+        """
+        # tokens of the input utterance
         words = s.split()
+        # maximum length until which parser should build up formulas
+        # set to length of input + 2 to account for potentially missing color that has to be inserted "out of the air"
         maxlen = len(words)+2
-        print(maxlen)
+        # initialize parse chart
         chart = defaultdict(set)
+        # agenda with all ParseItems that the parser has not tried to combine to any entry in the parse chart so far
         agenda = []
 
-        # construct predicates according to utterance
+        # construct predicates according to tokens in the utterance
+        # constructs a ParseItem for each input token and each lexical rule matching it according to the lexicon
         for word in words:
             for categorie, function, weight in self.lexicon[word]:
                 semantic = None
@@ -110,31 +156,32 @@ class Grammar:
                 chart[categorie, 1].add(item)
                 agenda.append(item)
 
-        # constructs predicates out of the air
-        # TODO: not really tested yet if this works correctly in combination with the gui
+        # constructs predicates out of the air (i.e. with no corresponding token in the input utterance)
         for (categorie, function, weight) in out_of_air:
             item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, weight)
             agenda.append(item)
 
-        # construct longer formulas using this components:
+        # construct longer formulas bottom-up by combining the shorter ones based on the rules of the grammar:
         maxlen_currently = 1
-        #while (maxlen_currently <= maxlen) and agenda:
+        # build up all possible formulas until no formula not exceeding the max. length is left
         while agenda:
+            # take a not yet considered formula from the agenda
             item = agenda.pop(0)
             s1 = item.s
             c1 = item.c
             components1 = item.components
             new_items = set()
 
+            # try if this formula can be combined with any other formula in the parse chart to yield a
+            # new, longer formula in line with the grammar
             for c2, s2 in chart:
                 s_new = s1+s2
-                print(s_new)
-                print(maxlen_currently)
                 if maxlen_currently < s_new:
                     maxlen_currently = s_new
 
                 if (c2,c1) in self.rules:
                      c_new = self.rules[c2, c1]
+                     # for each possible combination create a new ParseItem object for the resulting combined formula
                      for item2 in chart[c2, s2]:
                          semantic_new = None
                          components_new = components1.union(item2.components)
@@ -142,7 +189,7 @@ class Grammar:
                          weight_new = item.summed_weights + item2.summed_weights
                          item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
                                               weight_new)
-
+                         # only add new ParseItem if its formula does not exceed the max size
                          if s_new <= maxlen:
                             # check that new ParseItem is not already on the agenda
                             if not self.check_member(agenda, item_new):
@@ -152,6 +199,7 @@ class Grammar:
 
                 if (c1,c2) in self.rules:
                      c_new = self.rules[c1, c2]
+                     # for each possible combination create a new ParseItem object for the resulting combined formula
                      for item2 in chart[c2, s2]:
                          semantic_new = None
                          components_new = components1.union(item2.components)
@@ -159,6 +207,7 @@ class Grammar:
                          weight_new = item.summed_weights + item2.summed_weights
                          item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
                                               weight_new)
+                         # only add new ParseItem if its formula does not exceed the max size
                          if s_new <= maxlen:
                             # check that new ParseItem is not already on the agenda
                             if not self.check_member(agenda, item_new):
@@ -166,20 +215,24 @@ class Grammar:
                          
                             new_items.add(item_new)
 
-            #print("ITEM " + item.formular)
+            # add the newly built ParseItems to the chart
             for new_item in new_items:
                 # check that only ParseItems that are not already in the chart are added
-                #print(new_item.formular)
                 chart_list = list(chart[new_item.c, new_item.s].copy())
                 if not self.check_member(chart_list, new_item):
                     chart[new_item.c,new_item.s].add(new_item)
 
         results = []
+        # keep track that ParseItems that represent the same formula built from the same components only occur once in the result
         included_items = []
+        # out of all the formulas the parse built up, only return those that are complete, i.e. category = "V" and can
+        # be evaluated
         for (c,s) in chart:
             if c == 'V':
                 for item in chart[c,s]:
+                    # evaluate the formula
                     item.semantic = self.sem(item)
+                    # store the guessed_blocks that were created during evaluation and reset for next formula
                     item.guessed_blocks = guessed_blocks.copy()
                     guessed_blocks.clear()
                     # if average of weights should be computed for the total weight of a formula include the line below
@@ -218,6 +271,10 @@ class Grammar:
         return eval(lf.formular)
 
 
+# The lexica for our pictures
+# Lexica map strings to list of tuples of (category, logical form)
+# gold_lexicon_basic consists of the basic lexical rules needed from first level on
+# gold_lexicon_extended consists of the lexical rules not needed before level 3
 gold_lexicon_basic = {
     'form':[('B', 'block_filter([], allblocks)', 1)],
     'forms':[('B', 'block_filter([], allblocks)')],
@@ -250,26 +307,32 @@ gold_lexicon_extended = {
     'or': [('CONJ', 'oder', 1), ('CONJ', 'xoder', 1)]
 }
 
+# lexical rules that can be used to add a logical formula not corresponding to a word in the input utterance
 out_of_air = {
     ('C', 'anycol', 1)
 }
 
+# The binarized rule dictionary for our pictures, start symbol is V
+# each entry has a pair of categories as key and a category as value, ('B', 'C') : 'A'
+# where A is the parent category, B the left child and C the right child
+# order of the child categories defines the order in which the logical representations are applied
+# e.g. The first rule corresponds to: V -> EN  BC  and specifies that EN is applied to BC: EN(BC)
 rules = {
- ('EN','BC'):'V',
- ('EN','BS'):'V',
- ('CONJ','V'):'CONJ_1',
- ('CONJ_1','V'):'V',
- ('E','N'):'EN',
- ('C','B'):'BC',
- ('POS','N'):'POS_N',
- ('POS_N','BC'):'POS_NB',
- ('POS_NB','BC'):'BC',
- ('POS_NB','BC'):'BS',
+ ('EN', 'BC'): 'V',
+ ('EN', 'BS'): 'V',
+ ('CONJ', 'V'): 'CONJ_1',
+ ('CONJ_1', 'V'): 'V',
+ ('E', 'N'): 'EN',
+ ('C', 'B'): 'BC',
+ ('POS', 'N'): 'POS_N',
+ ('POS_N', 'BC'): 'POS_NB',
+ ('POS_NB', 'BC'): 'BC',
+ ('POS_NB', 'BC'): 'BS'
 
 }
 
-
-
+# The functions that are used to interpret our logical forms with eval.
+# They are imported into the namespace Grammar.sem to achieve that.
 functions = {
     'exist': (lambda n: (lambda b: update_guess(b) and len(b) in n)),
     'und': (lambda v1: (lambda v2: v1 and v2)),

@@ -4,6 +4,7 @@
 Defines our grammar: the lexicon (which actually is not used in the game when learning from scratch), the CFG rules
 and the functions on how to evaluate the logical forms with respect to a current Picture Object
 It also includes the CKY parser used to parse the input utterances and convert into logical forms
+Does only work in combination with simple_gui.py and NOT with simple_gui_floating.py
 
 Terminology:
 Difference between referenced and guessed blocks:
@@ -75,7 +76,15 @@ def create_lex_rules():
 
 class ParseItem:
     """
-    :param categorie:
+    Objects representing the logical formulas that the parser builds up step by step
+    c: string, category of the formular
+    s: int, size of the formula (= out of how many subformulas it is built)
+    semantic: Truth value of the formula when evaluated with respect to a picture; None if the formula is not a complete
+                formula, i.e. if c is not "V"
+    components: set of pairs of words from the utterance and the lexical rule paired with it by the parser
+    formular: string representation of the formula
+    guessed_blocks: list of Block Objects, list of the guessed blocks when formular is evaluate w.r.t a given picture
+                    the list is empty if formula is not complete yet, i.e. if c is not "V"
     """
     def __init__(self,categorie,length,semantic,components,str_form,guesses):
         self.c = categorie
