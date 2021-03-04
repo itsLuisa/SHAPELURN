@@ -51,9 +51,9 @@ Our parsing and learning framework is based on Liang, Percy and Christopher Pott
 * PictureLevel.py: generates a picture for a specified level by calling BlockPictureGenerator.py with corresponding parameters 
 * Semantic_Learner.py:  
 * eval_helper.py: functions needed in grammar.py to evaluate truth of description **documented**
-* floating_grammar.py: defines the grammer, the evalation of logical forms and the floating parser
-* grammar.py: defines the grammar, the evaluation of logical forms and the basic cky parser 
-* gui_simple.py: working GUI **documented
+* floating_grammar.py: defines the grammer, the evalation of logical forms and the floating parser **documented**
+* grammar.py: defines the grammar, the evaluation of logical forms and the basic cky parser **documented**
+* gui_simple.py: working GUI **documented**
 * gui_simple_floating.py
 * back_and_forth.py: An iterator class, that can go back and forth through a list
 * learning.py: the Stochastic Gradient Descent learn algorithm 
