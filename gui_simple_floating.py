@@ -102,11 +102,15 @@ while True:
     if event == "-START-":
         os.mkdir(session_name)
         evaluation_file = "./" + session_name + "/evaluation.csv"
+        weights_file = "./" + session_name + "/weights.csv"
         rule_probs = dict()
         learning = defaultdict(int)
         with open(evaluation_file, "w", encoding="utf-8") as f:
             first_line = "n\tlevel\tn_pic\tpicture_path\tguess_path\tinput\tattempts\tn_deleted_rules\tn_guessed_blocks\n"
             f.writelines(first_line)
+        with open(weights_file, "w", encoding="utf-8") as g:
+            first_line = "level\trule\tweight\tdeleted_rules\n"
+            g.writelines(first_line)
         # closing the the start window to start the actual game window
         window.close()
         window = actualgame
@@ -177,6 +181,7 @@ while True:
     if event == "-YES-":
         hiding_unhiding(event)
         n_deleted_rules = 0
+        deleted_rules = list()
         # updates weights
         lf = groups[current_marking]
         weights = evaluate_semparse(inpt,lf,gram,parse) # what is lfs.list? How can we substitute it with the current structure? (the values of groups are parseItems = lfs)
@@ -204,6 +209,7 @@ while True:
                         del total_scores[word][rule]
                         print("DELETE:",word,rule)
                         n_deleted_rules += 1
+                        deleted_rules.append((word, rule))
                         for r in crude_lexicon[word][:]:
                             if r[1] == rule:
                                 crude_lexicon[word].remove(r)       
@@ -231,6 +237,14 @@ while True:
         # update the level display
         n += 1
         if i_picture >= 10:
+            with open(weights_file, "a", encoding="utf-8") as g:
+                for id, rule in enumerate(learning.items()):
+                    try:
+                        line = str(level) + "\t" + str(rule[0]) + "\t" + str(rule[1]) + "\t" + str(
+                            deleted_rules[id]) + "\n"
+                    except IndexError:
+                        line = str(level) + "\t" + str(rule) + "\t" + str(rule[1]) + "\t-\n"
+                    g.writelines(line)
             i_picture = 0
             level += 1
             if level == 2:
@@ -339,6 +353,3 @@ window.close()
 
 for i in learning:
     print(i, learning[i])
-# open a new file with rule probabilities here
-#with open("rule_probs.csv", "w", encoding="utf-8") as g:
-    #pass
