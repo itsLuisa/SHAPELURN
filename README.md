@@ -10,9 +10,8 @@ Focused research question:  Can we teach a computer a mapping from natural langu
 # SHAPELURN
 # An Interactive Language Learning Game
 
-## Demo of the Prototype
-
-To play the Prototype of our language learning game you only have to clone the repository and run the gui_simple.py script. 
+## Demo of the SHAPELURN
+To play the our language learning game you only have to clone the repository and run the gui_simple.py script. 
 You will be asked to enter a name for your session and the programm will then create a new folder with your chosen name in the source code directory. 
 In this folder the result data from your game  will be stored. (If your are testing the game for us in order to collect data for our evaluation of the system, this folder contains all the data we need from you.)
 
@@ -28,11 +27,16 @@ To install the required packages run
 ## Basic Instructions 
 
 Hello! Welcome to SHAPELURN, where you can teach the computer any language of your choice!<br>
+You will be looking at different pictures and describing them to the computer in one sentence.<br>
+There will be four levels with different constraints on the descriptions.<br>
+Please use short sentences in the first two levels and do not use negation at all.<br>
+
+Hello! Welcome to SHAPELURN, where you can teach the computer any language of your choice!<br>
 You will be looking at different pictures and describing them to the computer in one sentence. <br>
 Please use rather short sentences and try not to use negation and conjunction."
 
 In order to evaluate our model we would like to collect your data.<br>
-Please enter any name under which you would like to save your data.
+Please enter any name under which you would like to save your data on your local machine.
 
 For the detailed instructions and examples please refer to the [Wiki](https://github.com/itsLuisa/Semantic-Parsing-of-picture-descriptions/wiki)
 
