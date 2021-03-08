@@ -44,7 +44,7 @@ game_screen = [
     ],
     [
         sg.Text(
-            "This will show up after you have entered your sentence.\nThe program will make a guess about what part of the picture your description was referring to by marking it with a black frame.\nPlease only click YES when ALL of the corresponding positions are marked.\nIf the guess does not match your description choose NEXT. With BACK you can go back to the previous guesses if you accidentally clicked NEXT.\nIf you accidentally entered a wrong description you can use SKIP to go on with the next picture.\n",
+            "This will show up after you have entered your sentence.\nThe program will make a guess about what part of the picture your description was referring to by marking it with a black frame.\nPlease only click YES when ALL of the corresponding positions are marked.\nIf the guess does not match your description choose NEXT. With BACK you can go back to the previous guesses if you accidentally clicked NEXT.\nIf you accidentally entered a wrong description you can use SKIP to go on with the next picture.\nImportant: Do not try to move the window of the GUI while it is processing your description or your feedback as this will lead to a bug in the presentation of the GUI!",
             key="-FEEDBACKINSTR-", font=default_font
         )
     ],

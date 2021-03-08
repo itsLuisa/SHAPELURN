@@ -120,12 +120,13 @@ class Grammar:
         self.rules = rules
 
 
-    def extend_crude_lexicon(self):
+    def extend_crude_lexicon(self, level):
         """
-        extend the lexicon of the grammar by the lexical rules from gold_lexicon_extended
+        extend the lexicon of the grammar by the lexical rules from gold_lexicon_extended according to current level
         :return:
         """
-        for key, value in gold_lexicon_extended.items():
+        extension = gold_lexicon_extended[level-2]
+        for key, value in extension.items():
             for entry in value:
                 self.lexicon.add((entry[0], entry[1], 0))
 
@@ -274,7 +275,6 @@ class Grammar:
 # The lexica for our pictures
 # Lexica map strings to list of tuples of (category, logical form)
 # gold_lexicon_basic consists of the basic lexical rules needed from first level on
-# gold_lexicon_extended consists of the lexical rules not needed before level 3
 gold_lexicon_basic = {
     'form':[('B', 'block_filter([], allblocks)', 1)],
     'forms':[('B', 'block_filter([], allblocks)')],
@@ -284,10 +284,6 @@ gold_lexicon_basic = {
     'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
     'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
     'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
-    'green': [('C', 'green', 1)],
-    'yellow': [('C', 'yellow', 1)],
-    'blue': [('C', 'blue', 1)],
-    'red': [('C', 'red', 1)],
     'is': [('E', 'exist', 1)],
     'are': [('E', 'exist', 1)],
     'a':[('N','range(1,17)', 1)],
@@ -297,15 +293,25 @@ gold_lexicon_basic = {
 
 }
 
-gold_lexicon_extended = {
-    'under': [('POS', 'under', 1)],
-    'over': [('POS', 'over', 1)],
-    'next': [('POS', 'next', 1)],
-    'left': [('POS', 'left', 1)],
-    'right': [('POS', 'right', 1)],
-    'and': [('CONJ', 'und', 1)],
-    'or': [('CONJ', 'oder', 1), ('CONJ', 'xoder', 1)]
-}
+# # gold_lexicon_extended consists of the lexical rules not needed in level 1 but later on
+# first dictionary for level 2, second dictionary for level 3
+gold_lexicon_extended = [
+    {
+        'green': [('C', 'green', 1)],
+        'yellow': [('C', 'yellow', 1)],
+        'blue': [('C', 'blue', 1)],
+        'red': [('C', 'red', 1)]
+    },
+    {
+        'under': [('POS', 'under', 1)],
+        'over': [('POS', 'over', 1)],
+        'next': [('POS', 'next', 1)],
+        'left': [('POS', 'left', 1)],
+        'right': [('POS', 'right', 1)],
+        'and': [('CONJ', 'und', 1)],
+        'or': [('CONJ', 'oder', 1), ('CONJ', 'xoder', 1)]
+    }
+]
 
 # lexical rules that can be used to add a logical formula not corresponding to a word in the input utterance
 out_of_air = {
@@ -377,7 +383,8 @@ def grouping(lfs):
 if __name__ == "__main__":
     #creat_all_blocks(setPicParameters())
     gold_lexicon = gold_lexicon_basic.copy()
-    gold_lexicon.update(gold_lexicon_extended)
+    gold_lexicon.update(gold_lexicon_extended,2)
+    gold_lexicon.update(gold_lexicon_extended,3)
     gram = Grammar(gold_lexicon, rules, functions)
     allblocks2 = []
     all_blocks_grid = allblocks_test.copy()

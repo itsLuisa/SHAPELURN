@@ -235,9 +235,10 @@ while True:
             level += 1
             if level == 2:
                 window["-DESCRIPTION-"].update(level2)
+                gram.extend_crude_lexicon(2)
             elif level == 3:
                 window["-DESCRIPTION-"].update(level3)
-                gram.extend_crude_lexicon()
+                gram.extend_crude_lexicon(3)
             elif level == 4:
                 window["-DESCRIPTION-"].update(level4)
             else:
