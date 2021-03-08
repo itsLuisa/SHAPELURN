@@ -4,10 +4,10 @@ default_font = "Helvetica 12"
 
 starting_screen = [
     [
-        sg.Text("Hello! Welcome to SHAPELURN, where you can teach the computer any language of your choice!\nYou will be looking at different pictures and describing them to the computer in one sentence.\nPlease use rather short sentences and try not to use negation and conjunction only on full sentences.", font=default_font)
+        sg.Text("Hello! Welcome to SHAPELURN, where you can teach the computer any language of your choice!\nYou will be looking at different pictures and describing them to the computer in one sentence.\nThere will be four levels with different constraints on the descriptions.\nPlease use short sentences in the first two levels and do not use negation at all.", font=default_font)
     ],
     [
-       sg.Text("In order to evaluate our model we would like to collect your data.\nPlease enter any name under which you would like to save your data.", font=default_font)
+       sg.Text("In order to evaluate our model we would like to collect your data.\nPlease enter any name under which you would like to save your data on your local machine.", font=default_font)
     ],
     [
         sg.Text("Enter session name:", font=default_font),
@@ -19,7 +19,7 @@ starting_screen = [
 # game screen contents
 game_screen = [
     [
-        sg.Text("Level xx, Picture xx: <- This is the level display, you will play 3 levels each containing 10 pictures.", key="-LEVEL-", font=default_font)
+        sg.Text("Level xx, Picture xx: <- This is the level display, you will play 4 levels each consisting of 10 pictures.", key="-LEVEL-", font=default_font)
     ],
     [
         sg.Text("\n[Here you will see a 4x4 grid picture displaying objects of different shape and color.]\n", key="-DESCRIPTION-", font=default_font)
@@ -44,7 +44,7 @@ game_screen = [
     ],
     [
         sg.Text(
-            "This will show up after you have entered your sentence.\nThe program will make a guess about what part of the picture your description was referring to by marking it with a black frame.\nPlease only click YES when ALL of the corresponding positions are marked.\nIf you accidentally entered a wrong description you can use SKIP to go on with the next picture.\n",
+            "This will show up after you have entered your sentence.\nThe program will make a guess about what part of the picture your description was referring to by marking it with a black frame.\nPlease only click YES when ALL of the corresponding positions are marked.\nIf the guess does not match your description choose NEXT. With BACK you can go back to the previous guesses if you accidentally clicked NEXT.\nIf you accidentally entered a wrong description you can use SKIP to go on with the next picture.\n",
             key="-FEEDBACKINSTR-", font=default_font
         )
     ],

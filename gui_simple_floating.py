@@ -30,8 +30,8 @@ n = 1
 eval_attempts = 0
 
 # level descriptions
-level1 = "only describe one block, e.g.: 'There is a red circle'"
-level2 = "describe one or more blocks, e.g: 'There are two blue forms'"
+level1 = "Use only the shapes and/or the number of blocks for your description, \n e.g.: 'There is a circle' or 'There are two forms'"
+level2 = "You can additionally describe the blocks by color, \n e.g: 'There are two blue forms'"
 level3 = "Now you can describe relations between blocks and use conjunction, \n e.g.: 'There is a red circle under a blue square'"
 level4 = "Describe whatever you want!"
 
