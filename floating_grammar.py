@@ -126,9 +126,10 @@ class Grammar:
         :return:
         """
         extension = gold_lexicon_extended[level-2]
-        for key, value in extension.items():
-            for entry in value:
-                self.lexicon.add((entry[0], entry[1], 0))
+        for word in self.lexicon:
+            for key, value in extension.items():
+                for entry in value:
+                    self.lexicon[word].append((entry[0], entry[1], 0))
 
 
     def gen(self,s):
