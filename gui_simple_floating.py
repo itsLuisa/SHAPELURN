@@ -210,18 +210,21 @@ while True:
                         print("DELETE:",word,rule)
                         n_deleted_rules += 1
                         deleted_rules.append((word, rule))
-                        count = 0
                         for r in crude_lexicon[word][:]:
                             if r[1] == rule:
                                 crude_lexicon[word].remove(r)
-                                count -=1
-                            else:
-                                crude_lexicon[word][count]=(crude_lexicon[word][count][0],crude_lexicon[word][count][1],crude_lexicon[word][count][2]+score)
-                            count+=1
-       
+                                
+            for word in crude_lexicon:
+                for ruleindex in range(0,len(crude_lexicon[word])):
+                    crude_lexicon[word][ruleindex] = (crude_lexicon[word][ruleindex][0],crude_lexicon[word][ruleindex][1],total_scores[word][crude_lexicon[word][ruleindex][1]])
+                    
+        
         gram = Grammar(crude_lexicon,rules,functions)
+        print("\nNew Lexicon:")
         for word in crude_lexicon:
-            print(word,len(crude_lexicon[word]))
+            print("---",word,"---")
+            for rule in crude_lexicon[word]:
+                print(rule)
             #print(crude_lexicon[word])
         #print(total_scores)
         #print(weights)
