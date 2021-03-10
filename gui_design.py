@@ -49,15 +49,15 @@ game_screen = [
         )
     ],
     [
+        sg.Text("This button will appear when you level up:", key="-LEVELUP-", font=default_font),
+        sg.Button("CONTINUE", key="-CONTINUE-", disabled=True, font=default_font)
+    ],
+    [
         sg.Text("Whenever you're ready:", key="-NEXTINSTR-", font=default_font)
     ],
     [
         sg.Button("Press here to show first picture", key="-NEXT-", font=default_font)
     ]
-]
-
-level_up_screen = [
-    [sg.Text("You reached the next level!", key="-LEVELUP-", size=(2,1), font="Helvetica 20")]
 ]
 
 # the layouts for both screens
@@ -70,11 +70,5 @@ layout_starting_screen = [
 layout_game_screen = [
     [
         sg.Column(game_screen)
-    ]
-]
-
-layout_level_up_screen = [
-    [
-        sg.Column(level_up_screen)
     ]
 ]

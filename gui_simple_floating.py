@@ -20,7 +20,6 @@ total_scores = defaultdict(lambda:defaultdict(int))
 # initializing the windows
 start = sg.Window("Hello!", layout_starting_screen)
 actualgame = sg.Window("SHAPELURN", layout_game_screen, return_keyboard_events=True)
-#levelup = sg.Window("SHAPELURN", layout_level_up_screen)
 window = start
 
 # define starting point
@@ -65,6 +64,8 @@ def hiding_unhiding(event):
         window["-YES-"].hide_row()
         window["-NEXTINSTR-"].hide_row()
         window["-NEXT-"].hide_row()
+        window["-LEVELUP-"].hide_row()
+        window["-CONTINUE-"].update(disabled=False)
     elif event == "-ENTER-":
         # disabling further keyboard input and unhiding feedback buttons
         window["-INPUT-"].update(disabled=True)
@@ -254,6 +255,7 @@ while True:
                     except IndexError:
                         line = str(level) + "\t" + str(rule) + "\t" + str(rule[1]) + "\t-\n"
                     g.writelines(line)
+
             i_picture = 0
             level += 1
             if level == 2:
@@ -281,6 +283,16 @@ while True:
         eval_picture = str(picture_path(level, i_picture, session_name))
         window["-LEVEL-"].update("Level " + str(level) + ", Picture " + str(i_picture) + ":")
         eval_attempts = 0
+
+        # level up screen
+        if level >= 2 and i_picture == 1:
+            window["-INPUT-"].hide_row()
+            window["-LEVELUP-"].unhide_row()
+            window["-LEVELUP-"].update("You reached the next level!")
+
+    if event == "-CONTINUE-":
+        window["-LEVELUP-"].hide_row()
+        window["-INPUT-"].unhide_row()
 
     # parsing tree was not correct, produce new guess
     if event == "-NO-": # next
@@ -347,7 +359,7 @@ while True:
         hiding_unhiding(event)
         
         with open(evaluation_file, "a", encoding="utf-8") as f:
-            line = str(n) +"\t"+ str(level)  +"\t"+str(i_picture) + "\t" + eval_picture + "\t" + eval_marked_picture + "\t" + eval_input + "\t" + "NA" + "\t" + "NA" + "\t" + "NA" + "\n"
+            line = str(n) +"\t"+ str(level)  +"\t"+str(i_picture) + "\t" + eval_picture + "\t" + "NA" + "\t" + eval_input + "\t" + "NA" + "\t" + "NA" + "\t" + "NA" + "\n"
             f.writelines(line)
 
         current_pic = setPicParameters(level, i_picture, session_name)
