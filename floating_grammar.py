@@ -71,6 +71,17 @@ def create_lex_rules():
 
     return list(crude_rules)
 
+def update_crude_rules(level, crude_rules):
+    """
+    :param level:
+    """
+    extension = gold_lexicon_extended[level - 2]
+    for key, value in extension.items():
+        for entry in value:
+            crude_rules.append((entry[0], entry[1], 0))
+
+
+
 
 
 class ParseItem:
@@ -279,7 +290,7 @@ class Grammar:
 gold_lexicon_basic = {
     'form':[('B', 'block_filter([], allblocks)', 1)],
     'forms':[('B', 'block_filter([], allblocks)')],
-    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"],allblocks)', 1)],
+    'square': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)', 1)],
     'squares': [('B', 'block_filter([lambda b: b.shape=="rectangle"], allblocks)', 1)],
     'triangle': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
     'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],

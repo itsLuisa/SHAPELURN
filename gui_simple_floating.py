@@ -158,6 +158,7 @@ while True:
         # with grouping included so every marking will only appear once, doesnt work though
         parse = gram.gen(inpt)
         print("parsing done")
+
         groups, sortedguesses = grouping(parse)
         print(sortedguesses)
         blocks = BackAndForth_Iterator(sortedguesses)
@@ -258,9 +259,11 @@ while True:
             if level == 2:
                 window["-DESCRIPTION-"].update(level2)
                 gram.extend_crude_lexicon(2)
+                update_crude_rules(2, crude_rule)
             elif level == 3:
                 window["-DESCRIPTION-"].update(level3)
                 gram.extend_crude_lexicon(3)
+                update_crude_rules(3, crude_rule)
             elif level == 4:
                 window["-DESCRIPTION-"].update(level4)
             else:
