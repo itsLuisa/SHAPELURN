@@ -137,8 +137,8 @@ class Grammar:
         # tokens of the input utterance
         words = s.split()
         # maximum length until which parser should build up formulas
-        # set to length of input + 2 to account for potentially missing color that has to be inserted "out of the air"
-        maxlen = len(words)+2
+        # set to length of input + 2 to account for potentially missing color and exist that has to be inserted "out of the air"
+        maxlen = len(words)+4
         # initialize parse chart
         chart = defaultdict(set)
         # agenda with all ParseItems that the parser has not tried to combine to any entry in the parse chart so far
@@ -430,10 +430,12 @@ if __name__ == "__main__":
                 allblocks2.append(blo)
     allblocks = allblocks2
 
-    lfs = gram.gen("a red triangle and a green square")
+    #lfs = gram.gen("a red triangle and a green square")
     #lfs = gram.gen("is one red triangle over a blue triangle")
-    #lfs = gram.gen("a red triangle")
+    #lfs = gram.gen("a triangle")
     #lfs = gram.gen("a red triangle and a blue triangle")
+    lfs = gram.gen("a triangle over a square")
+    #lfs = gram.gen("a triangle and a square")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
@@ -445,6 +447,6 @@ if __name__ == "__main__":
     print(g[0])
     for guess in g[1]:
         for block in guess:
-            print(block.x, block.y)
+            print(block.y, block.x)
         print("new_guess")
 
