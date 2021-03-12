@@ -53,7 +53,7 @@ game_screen = [
         sg.Button("CONTINUE", key="-CONTINUE-", disabled=True, font=default_font)
     ],
     [
-        sg.Text("Whenever you're ready:", key="-NEXTINSTR-", font=default_font)
+        sg.Text("Whenever you're ready:\t", key="-NEXTINSTR-", font=default_font)
     ],
     [
         sg.Button("Press here to show first picture", key="-NEXT-", font=default_font)

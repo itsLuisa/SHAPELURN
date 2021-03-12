@@ -23,8 +23,8 @@ actualgame = sg.Window("SHAPELURN", layout_game_screen, return_keyboard_events=T
 window = start
 
 # define starting point
-level = 1
-i_picture = 1
+level = 4
+i_picture = 9
 n = 1
 eval_attempts = 0
 
@@ -270,9 +270,9 @@ while True:
                 #update_crude_rules(3, crude_rule)
             elif level == 4:
                 window["-DESCRIPTION-"].update(level4)
-            else:
-                print("thank you for participating!")
-                break
+            #else:
+                #print("thank you for participating!")
+                #break
         i_picture += 1
 
         # initialize new picture
@@ -287,10 +287,17 @@ while True:
         eval_attempts = 0
 
         # level up screen
-        if level >= 2 and i_picture == 1:
+        if level >= 2 and level < 4 and i_picture == 1:
             window["-INPUT-"].hide_row()
             window["-LEVELUP-"].unhide_row()
             window["-LEVELUP-"].update("You reached the next level!")
+        elif level == 5 and i_picture == 1:
+            window["-INPUT-"].hide_row()
+            window["-LEVELUP-"].unhide_row()
+            window["-LEVELUP-"].update("Thank you for participating!")
+            window["-CONTINUE-"].update(visible=False)
+            window["-NEXTINSTR-"].unhide_row()
+            window["-NEXTINSTR-"].update("You can now close the window:)")
 
     if event == "-CONTINUE-":
         window["-LEVELUP-"].hide_row()
