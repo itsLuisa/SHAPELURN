@@ -253,8 +253,9 @@ class Grammar:
                     if self.check_member(included_items, item):
                         continue
                     else:
-                        results.append(item)
-                        included_items.append(item)
+                        if item.semantics:
+                            results.append(item)
+                            included_items.append(item)
 
         return results
 
