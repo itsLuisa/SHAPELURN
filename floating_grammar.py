@@ -158,7 +158,7 @@ class Grammar:
         # constructs predicates out of the air (i.e. with no corresponding token in the input utterance)
         for (categorie, function, weight) in out_of_air:
             remaining = words.copy()
-            item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, weight, remaining, [])
+            item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, 0, remaining, [])
             agenda.append(item)
 
         # construct longer formulas bottom-up by combining the shorter ones based on the rules of the grammar:
@@ -430,7 +430,7 @@ if __name__ == "__main__":
                 allblocks2.append(blo)
     allblocks = allblocks2
 
-    lfs = gram.gen("a red triangle over a blue triangle")
+    lfs = gram.gen("a red triangle and a green square")
     #lfs = gram.gen("is one red triangle over a blue triangle")
     #lfs = gram.gen("a red triangle")
     #lfs = gram.gen("a red triangle and a blue triangle")
@@ -443,5 +443,8 @@ if __name__ == "__main__":
     print("GROUPING")
     g = grouping(lfs)
     print(g[0])
-    print(g[1])
+    for guess in g[1]:
+        for block in guess:
+            print(block.x, block.y)
+        print("new_guess")
 
