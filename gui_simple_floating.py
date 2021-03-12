@@ -29,9 +29,9 @@ n = 1
 eval_attempts = 0
 
 # level descriptions
-level1 = "Use only the shapes and/or the number of blocks for your description, \n e.g.: 'There is a circle' or 'There are two forms'"
-level2 = "You can additionally describe the blocks by color, \n e.g: 'There are two blue forms'"
-level3 = "Now you can describe relations between blocks and use conjunction, \n e.g.: 'There is a red circle under a blue square'"
+level1 = "Use only the shapes and/or the number of blocks for your description, \n e.g.: 'a circle' or 'there are two forms'"
+level2 = "You can additionally describe the blocks by color, \n e.g: 'there are two blue forms'"
+level3 = "Now you can describe relations between blocks and use conjunction, \n e.g.: 'there is a red circle under a blue square'"
 level4 = "Describe whatever you want!"
 
 def picture_path(level, i_picture, session_name, guess=False):
@@ -205,6 +205,8 @@ while True:
             for w in weights:
                 if len(w)==2:
                     word,rule = w
+                    if word == "":
+                        continue
                     score = weights[w]
                     total_scores[word][rule]+=score
                     if total_scores[word][rule]<=threshold :
@@ -260,12 +262,12 @@ while True:
             level += 1
             if level == 2:
                 window["-DESCRIPTION-"].update(level2)
-                gram.extend_crude_lexicon(2)
-                update_crude_rules(2, crude_rule)
+                #gram.extend_crude_lexicon(2)
+                #update_crude_rules(2, crude_rule)
             elif level == 3:
                 window["-DESCRIPTION-"].update(level3)
-                gram.extend_crude_lexicon(3)
-                update_crude_rules(3, crude_rule)
+                #gram.extend_crude_lexicon(3)
+                #update_crude_rules(3, crude_rule)
             elif level == 4:
                 window["-DESCRIPTION-"].update(level4)
             else:

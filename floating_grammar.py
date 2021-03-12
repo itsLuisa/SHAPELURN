@@ -253,7 +253,7 @@ class Grammar:
                     if self.check_member(included_items, item):
                         continue
                     else:
-                        if item.semantics:
+                        if item.semantic:
                             results.append(item)
                             included_items.append(item)
 
@@ -302,7 +302,18 @@ gold_lexicon_basic = {
     'a':[('N','range(1,17)', 1)],
     'one':[('N','[1]', 1)],
     'two':[('N','[2]', 1)],
-    'three':[('N','[3]', 1)]
+    'three':[('N','[3]', 1)],
+    'green': [('C', 'green', 1)],
+    'yellow': [('C', 'yellow', 1)],
+    'blue': [('C', 'blue', 1)],
+    'red': [('C', 'red', 1)],
+    'under': [('POS', 'under', 1)],
+    'over': [('POS', 'over', 1)],
+    'next': [('POS', 'next', 1)],
+    'left': [('POS', 'left', 1)],
+    'right': [('POS', 'right', 1)],
+    'and': [('CONJ', 'und', 1)],
+    'or': [('CONJ', 'oder', 1), ('CONJ', 'xoder', 1)]
 
 }
 
@@ -328,7 +339,8 @@ gold_lexicon_extended = [
 
 # lexical rules that can be used to add a logical formula not corresponding to a word in the input utterance
 out_of_air = {
-    ('C', 'anycol', 1)
+    ('C', 'anycol', 1),
+    ('E', 'exist', 1)
 }
 
 # The binarized rule dictionary for our pictures, start symbol is V
