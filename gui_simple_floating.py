@@ -14,7 +14,7 @@ from back_and_forth import BackAndForth_Iterator
 # inizializing grammar and learning algorithm
 crude_lexicon={}
 crude_rule = create_lex_rules()
-threshold = -0.01
+threshold = -0.1
 total_scores = defaultdict(lambda:defaultdict(int))
 
 # initializing the windows
