@@ -23,8 +23,8 @@ actualgame = sg.Window("SHAPELURN", layout_game_screen, return_keyboard_events=T
 window = start
 
 # define starting point
-level = 4
-i_picture = 9
+level = 1
+i_picture = 1
 n = 1
 eval_attempts = 0
 

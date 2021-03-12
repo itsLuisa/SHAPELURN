@@ -71,16 +71,6 @@ def create_lex_rules():
 
     return list(crude_rules)
 
-def update_crude_rules(level, crude_rules):
-    """
-    :param level:
-    """
-    extension = gold_lexicon_extended[level - 2]
-    for key, value in extension.items():
-        for entry in value:
-            crude_rules.append((entry[0], entry[1], 0))
-
-
 
 
 
@@ -97,7 +87,7 @@ class ParseItem:
                     the list is empty if formula is not complete yet, i.e. if c is not "V"
     summed_weights: float, sum of the weights of the subformulas
     """
-    def __init__(self, categorie, length, semantic, components, str_form, guesses, weight):
+    def __init__(self, categorie, length, semantic, components, str_form, guesses, weight, rem, incl):
         """
         :param categorie: string, category of the formula
         :param length: int, size of the formula
@@ -114,6 +104,11 @@ class ParseItem:
         self.formular = str_form
         self.guessed_blocks = guesses
         self.summed_weights = weight
+        self.included_words = incl
+        self.remaining_words = rem
+
+
+
 
 """
 The framework below is taken from Potts & Liang
@@ -130,17 +125,6 @@ class Grammar:
         self.functions = functions
         self.rules = rules
 
-
-    def extend_crude_lexicon(self, level):
-        """
-        extend the lexicon of the grammar by the lexical rules from gold_lexicon_extended according to current level
-        :return:
-        """
-        extension = gold_lexicon_extended[level-2]
-        for word in self.lexicon:
-            for key, value in extension.items():
-                for entry in value:
-                    self.lexicon[word].append((entry[0], entry[1], 0))
 
 
     def gen(self,s):
@@ -165,13 +149,16 @@ class Grammar:
         for word in words:
             for categorie, function, weight in self.lexicon[word]:
                 semantic = None
-                item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight)
+                remaining = words.copy()
+                remaining.remove(word)
+                item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight, remaining, [word])
                 chart[categorie, 1].add(item)
                 agenda.append(item)
 
         # constructs predicates out of the air (i.e. with no corresponding token in the input utterance)
         for (categorie, function, weight) in out_of_air:
-            item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, weight)
+            remaining = words.copy()
+            item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, weight, remaining, [])
             agenda.append(item)
 
         # construct longer formulas bottom-up by combining the shorter ones based on the rules of the grammar:
@@ -196,12 +183,16 @@ class Grammar:
                      c_new = self.rules[c2, c1]
                      # for each possible combination create a new ParseItem object for the resulting combined formula
                      for item2 in chart[c2, s2]:
+                         new_incl, new_rem = self.check_preconditions(item, item2, words)
+                         if not new_incl:
+                             continue
+
                          semantic_new = None
                          components_new = components1.union(item2.components)
                          function_new = item2.formular + "(" + item.formular + ")"
                          weight_new = item.summed_weights + item2.summed_weights
                          item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
-                                              weight_new)
+                                              weight_new, new_rem, new_incl)
                          # only add new ParseItem if its formula does not exceed the max size
                          if s_new <= maxlen:
                             # check that new ParseItem is not already on the agenda
@@ -214,12 +205,15 @@ class Grammar:
                      c_new = self.rules[c1, c2]
                      # for each possible combination create a new ParseItem object for the resulting combined formula
                      for item2 in chart[c2, s2]:
+                         new_incl, new_rem = self.check_preconditions(item, item2, words)
+                         if not new_incl:
+                             continue
                          semantic_new = None
                          components_new = components1.union(item2.components)
                          function_new = item.formular + "(" + item2.formular + ")"
                          weight_new = item.summed_weights + item2.summed_weights
                          item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
-                                              weight_new)
+                                              weight_new, new_rem, new_incl)
                          # only add new ParseItem if its formula does not exceed the max size
                          if s_new <= maxlen:
                             # check that new ParseItem is not already on the agenda
@@ -234,6 +228,7 @@ class Grammar:
                 chart_list = list(chart[new_item.c, new_item.s].copy())
                 if not self.check_member(chart_list, new_item):
                     chart[new_item.c,new_item.s].add(new_item)
+
 
         results = []
         # keep track that ParseItems that represent the same formula built from the same components only occur once in the result
@@ -273,6 +268,44 @@ class Grammar:
         return False
 
 
+    def check_preconditions(self,pi_1, pi_2, words):
+        """
+        :param pi_1:
+        :param pi_2:
+        :param words:
+        """
+        flag1 = False
+        flag2 = False
+
+        if len(pi_1.included_words) <= len(pi_2.remaining_words):
+            flag1 = True
+            temp_list = pi_2.remaining_words.copy()
+            for w in pi_1.included_words:
+                try:
+                    temp_list.remove(w)
+                except:
+                    flag1 = False
+
+        if len(pi_2.included_words) <= len(pi_1.remaining_words):
+            flag2 = True
+            temp_list = pi_1.remaining_words.copy()
+            for w in pi_2.included_words:
+                try:
+                    temp_list.remove(w)
+                except:
+                    flag2 = False
+
+        if flag1 and flag2:
+            new_included = pi_1.included_words + pi_2.included_words
+            new_remaining = words.copy()
+            for new in new_included:
+                new_remaining.remove(new)
+            return new_included, new_remaining
+
+        else:
+            return None, None
+
+
     def sem(self, lf):
         """Interpret, as Python code, the root of a logical form
         generated by this grammar."""
@@ -297,8 +330,6 @@ gold_lexicon_basic = {
     'triangles': [('B', 'block_filter([(lambda b: b.shape == "triangle")], allblocks)', 1)],
     'circle': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
     'circles': [('B', 'block_filter([(lambda b: b.shape == "circle")], allblocks)', 1)],
-    #'is': [('E', 'exist', 1)],
-    #'are': [('E', 'exist', 1)],
     'a':[('N','range(1,17)', 1)],
     'one':[('N','[1]', 1)],
     'two':[('N','[2]', 1)],
@@ -317,25 +348,7 @@ gold_lexicon_basic = {
 
 }
 
-# # gold_lexicon_extended consists of the lexical rules not needed in level 1 but later on
-# first dictionary for level 2, second dictionary for level 3
-gold_lexicon_extended = [
-    {
-        'green': [('C', 'green', 1)],
-        'yellow': [('C', 'yellow', 1)],
-        'blue': [('C', 'blue', 1)],
-        'red': [('C', 'red', 1)]
-    },
-    {
-        'under': [('POS', 'under', 1)],
-        'over': [('POS', 'over', 1)],
-        'next': [('POS', 'next', 1)],
-        'left': [('POS', 'left', 1)],
-        'right': [('POS', 'right', 1)],
-        'and': [('CONJ', 'und', 1)],
-        'or': [('CONJ', 'oder', 1), ('CONJ', 'xoder', 1)]
-    }
-]
+
 
 # lexical rules that can be used to add a logical formula not corresponding to a word in the input utterance
 out_of_air = {
@@ -408,8 +421,6 @@ def grouping(lfs):
 if __name__ == "__main__":
     #creat_all_blocks(setPicParameters())
     gold_lexicon = gold_lexicon_basic.copy()
-    gold_lexicon.update(gold_lexicon_extended,2)
-    gold_lexicon.update(gold_lexicon_extended,3)
     gram = Grammar(gold_lexicon, rules, functions)
     allblocks2 = []
     all_blocks_grid = allblocks_test.copy()
@@ -419,10 +430,10 @@ if __name__ == "__main__":
                 allblocks2.append(blo)
     allblocks = allblocks2
 
-    #lfs = gram.gen("is a red triangle over a blue triangle")
+    lfs = gram.gen("a red triangle over a blue triangle")
     #lfs = gram.gen("is one red triangle over a blue triangle")
-    #lfs = gram.gen("is a red triangle")
-    lfs = gram.gen("is a red triangle and a red triangle")
+    #lfs = gram.gen("a red triangle")
+    #lfs = gram.gen("a red triangle and a blue triangle")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
