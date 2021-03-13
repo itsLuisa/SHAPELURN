@@ -29,9 +29,9 @@ n = 1
 eval_attempts = 0
 
 # level descriptions
-level1 = "Use only the shapes and/or the number of blocks for your description, \n e.g.: 'a circle' or 'there are two forms'"
-level2 = "You can additionally describe the blocks by color, \n e.g: 'there are two blue forms'"
-level3 = "Now you can describe relations between blocks and use conjunction, \n e.g.: 'there is a red circle under a blue square'"
+level1 = "Use only the shapes and/or the number of blocks for your description, \n e.g.: 'a circle' or 'two forms'"
+level2 = "You can additionally describe the blocks by color, \n e.g: 'two blue forms'"
+level3 = "Now you can describe relations between blocks and use conjunction, \n e.g.: 'a red circle under a blue square'"
 level4 = "Describe whatever you want!"
 
 def picture_path(level, i_picture, session_name, guess=False):
@@ -248,7 +248,7 @@ while True:
 
         # update the level display
         n += 1
-        if i_picture >= 10:
+        if i_picture >= 15:
             with open(weights_file, "a", encoding="utf-8") as g:
                 for id, rule in enumerate(learning.items()):
                     try:

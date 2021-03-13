@@ -25,13 +25,13 @@ def setPicParameters(level, i_picture, session_name):
         complexity = (3,4)
         
     elif level == 3:
-        complexity = (3, 9)
+        complexity = (4, 6)
 
     elif level == 4:
-        complexity = (5, 13)
+        complexity = (5, 8)
 
     else:
-        complexity = (3,13)
+        complexity = (5, 8)
 
     current_picture = Picture(complexity, path_pict)
     
