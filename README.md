@@ -39,9 +39,9 @@ In order to evaluate our model we would like to collect your data.<br>
 Please enter any name under which you would like to save your data on your local machine.
 
 Constraints on descriptions depending on level: <br>
-* Level 1: Use only the shapes and/or the number of blocks for your description, e.g.: *There is a circle* or *There are two forms*
-* Level 2: You can additionally describe the blocks by color, e.g: *There are two blue forms*
-* Level 3: Now you can describe relations between blocks and use conjunction, e.g.: *There is a red circle under a blue square*
+* Level 1: Use only the shapes and/or the number of blocks for your description, e.g.: *a circle* or *two forms*
+* Level 2: You can additionally describe the blocks by color, e.g: *two blue forms*
+* Level 3: Now you can describe relations between blocks and use conjunction, e.g.: *a red circle under a blue square*
 * Level4: Describe whatever you want!
 
 **Important** Do not try to move the window of the GUI why it is processing your description or your feedback as this will lead to a bug in the presentation of the GUI!
