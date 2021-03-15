@@ -151,14 +151,15 @@ class Grammar:
                 semantic = None
                 remaining = words.copy()
                 remaining.remove(word)
-                item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight, remaining, [word])
+                #item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight, remaining, [word])
+                item = ParseItem(categorie, 1, semantic, [(word, function)], function, guessed_blocks, weight, remaining, [word])
                 chart[categorie, 1].add(item)
                 agenda.append(item)
 
         # constructs predicates out of the air (i.e. with no corresponding token in the input utterance)
         for (categorie, function, weight) in out_of_air:
             remaining = words.copy()
-            item = ParseItem(categorie, 1, None, {("", function)}, function, guessed_blocks, 0, remaining, [])
+            item = ParseItem(categorie, 1, None, [("", function)], function, guessed_blocks, 0, remaining, [])
             agenda.append(item)
 
         # construct longer formulas bottom-up by combining the shorter ones based on the rules of the grammar:
@@ -188,7 +189,8 @@ class Grammar:
                              continue
 
                          semantic_new = None
-                         components_new = components1.union(item2.components)
+                         #components_new = components1.union(item2.components)
+                         components_new = components1+item2.components
                          function_new = item2.formular + "(" + item.formular + ")"
                          weight_new = item.summed_weights + item2.summed_weights
                          item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
@@ -209,7 +211,7 @@ class Grammar:
                          if not new_incl:
                              continue
                          semantic_new = None
-                         components_new = components1.union(item2.components)
+                         components_new = components1+item2.components
                          function_new = item.formular + "(" + item2.formular + ")"
                          weight_new = item.summed_weights + item2.summed_weights
                          item_new = ParseItem(c_new, s_new, semantic_new, components_new, function_new, guessed_blocks,
@@ -248,9 +250,8 @@ class Grammar:
                     if self.check_member(included_items, item):
                         continue
                     else:
-                        if item.semantic:
-                            results.append(item)
-                            included_items.append(item)
+                        results.append(item)
+                        included_items.append(item)
 
         return results
 
