@@ -32,10 +32,6 @@ You will be looking at different pictures and describing them to the computer in
 There will be four levels with different constraints on the descriptions.<br>
 Please use short sentences in the first two levels and do not use negation at all.<br>
 
-Hello! Welcome to SHAPELURN, where you can teach the computer any language of your choice!<br>
-You will be looking at different pictures and describing them to the computer in one sentence. <br>
-Please use rather short sentences and try not to use negation and conjunction."
-
 In order to evaluate our model we would like to collect your data.<br>
 Please enter any name under which you would like to save your data on your local machine.
 
