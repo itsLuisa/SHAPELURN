@@ -15,6 +15,7 @@ from back_and_forth import BackAndForth_Iterator
 crude_lexicon={}
 crude_rule = create_lex_rules()
 threshold = -0.1
+upper_threshold = 1.0
 total_scores = defaultdict(lambda:defaultdict(int))
 
 # initializing the windows
@@ -27,6 +28,7 @@ level = 1
 i_picture = 1
 n = 1
 eval_attempts = 0
+second_version = False
 
 # level descriptions
 level1 = "Use only the shapes and/or the number of blocks for your description, \n e.g.: 'a circle' or 'two forms'"
@@ -123,7 +125,7 @@ while True:
         hiding_unhiding(event)
 
         # initializing the first picture
-        current_pic = setPicParameters(level, i_picture, session_name)
+        current_pic = setPicParameters(level, i_picture, session_name, second_version)
         current_pic.draw()
         create_all_blocks(current_pic)
         # displaying the picture on the screen
@@ -209,7 +211,7 @@ while True:
                         continue
                     score = weights[w]
                     total_scores[word][rule]+=score
-                    if total_scores[word][rule]<=threshold :
+                    if total_scores[word][rule]<=threshold:
                         del total_scores[word][rule]
                         print("DELETE:",word,rule)
                         n_deleted_rules += 1
@@ -217,6 +219,30 @@ while True:
                         for r in crude_lexicon[word][:]:
                             if r[1] == rule:
                                 crude_lexicon[word].remove(r)
+
+            # delete rules with weight equal or below 0 if one rule for a word reaches weight of 1
+            rules_to_delete = set()
+            for word in total_scores:
+                above_one = False
+                # check whether one rule reaches the threshold
+                for rule in total_scores[word]:
+                    if total_scores[word][rule] >= upper_threshold:
+                        above_one = True
+                        break
+                # check which rules are equal or below 0 and should be deleted
+                if above_one:
+                    for rule in total_scores[word]:
+                        if total_scores[word][rule] <= 0:
+                            rules_to_delete.add((word, rule))
+            # delete the determined rules
+            for (word, rule) in rules_to_delete:
+                del total_scores[word][rule]
+                print("DELETE:", word, rule)
+                n_deleted_rules += 1
+                deleted_rules.append((word, rule))
+                for r in crude_lexicon[word][:]:
+                    if r[1] == rule:
+                        crude_lexicon[word].remove(r)
                                 
             for word in crude_lexicon:
                 for ruleindex in range(0,len(crude_lexicon[word])):
@@ -248,7 +274,11 @@ while True:
 
         # update the level display
         n += 1
-        if i_picture >= 15:
+        second_version = False
+        if i_picture >= 15 and i_picture < 20 and level == 2:
+            second_version = True
+        elif i_picture >= 15:
+            second_version = False
             with open(weights_file, "a", encoding="utf-8") as g:
                 for id, rule in enumerate(learning.items()):
                     try:
@@ -262,12 +292,10 @@ while True:
             level += 1
             if level == 2:
                 window["-DESCRIPTION-"].update(level2)
-                #gram.extend_crude_lexicon(2)
-                #update_crude_rules(2, crude_rule)
+
             elif level == 3:
                 window["-DESCRIPTION-"].update(level3)
-                #gram.extend_crude_lexicon(3)
-                #update_crude_rules(3, crude_rule)
+
             elif level == 4:
                 window["-DESCRIPTION-"].update(level4)
             #else:
@@ -276,7 +304,7 @@ while True:
         i_picture += 1
 
         # initialize new picture
-        current_pic = setPicParameters(level, i_picture, session_name)
+        current_pic = setPicParameters(level, i_picture, session_name, second_version)
         current_pic.draw()
         create_all_blocks(current_pic)
 
@@ -325,7 +353,7 @@ while True:
                 i_picture = 0
                 level += 1
             i_picture += 1
-            current_pic = setPicParameters(level, i_picture, session_name)
+            current_pic = setPicParameters(level, i_picture, session_name, second_version)
             current_pic.draw()
             # Katharina added following line
             create_all_blocks(current_pic)
@@ -355,7 +383,7 @@ while True:
                 i_picture = 0
                 level += 1
             i_picture += 1
-            current_pic = setPicParameters(level, i_picture, session_name)
+            current_pic = setPicParameters(level, i_picture, session_name, second_version)
             current_pic.draw()
             # Katharina added following line
             create_all_blocks(current_pic)
@@ -371,7 +399,7 @@ while True:
             line = str(n) +"\t"+ str(level)  +"\t"+str(i_picture) + "\t" + eval_picture + "\t" + "NA" + "\t" + eval_input + "\t" + "NA" + "\t" + "NA" + "\t" + "NA" + "\n"
             f.writelines(line)
 
-        current_pic = setPicParameters(level, i_picture, session_name)
+        current_pic = setPicParameters(level, i_picture, session_name, second_version)
         current_pic.draw()
         # Katharina added following line
         create_all_blocks(current_pic)

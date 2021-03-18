@@ -5,7 +5,7 @@ Allows to create a picture object as specified in BlockPictureGenerator with par
 current level and the current session
 """
 
-def setPicParameters(level, i_picture, session_name):
+def setPicParameters(level, i_picture, session_name, sec_ver=False):
     """
     creates a Picture object where the number of shown blocks is based on the current level
     returns the picture object after storing it in the subfolder session_name and giving it a unique file name
@@ -22,7 +22,10 @@ def setPicParameters(level, i_picture, session_name):
         complexity = (3,4)
 
     elif level == 2:
-        complexity = (3,4)
+        if sec_ver:
+            complexity = (3,6)
+        else:
+            complexity = (3,4)
         
     elif level == 3:
         complexity = (4, 6)
