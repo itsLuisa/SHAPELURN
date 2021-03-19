@@ -19,7 +19,7 @@ starting_screen = [
 # game screen contents
 game_screen = [
     [
-        sg.Text("Level xx, Picture xx: <- This is the level display, you will play 4 levels each consisting of 10 pictures.", key="-LEVEL-", font=default_font)
+        sg.Text("Level xx, Picture xx: <- This is the level display, you will play 4 levels.", key="-LEVEL-", font=default_font)
     ],
     [
         sg.Text("\n[Here you will see a 4x4 grid picture displaying objects of different shape and color.]\n", key="-DESCRIPTION-", font=default_font)
