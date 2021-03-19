@@ -33,7 +33,7 @@ second_version = False
 # level descriptions
 level1 = "Use only the shapes and/or the number of blocks for your description, \n e.g.: 'a circle' or 'two forms'"
 level2 = "You can additionally describe the blocks by color, \n e.g: 'two blue forms'"
-level3 = "Now you can describe relations between blocks and use conjunction, \n e.g.: 'a red circle under a blue square'"
+level3 = "Now you can describe relations between blocks and use conjunction (please don't use colors),\ne.g.: 'a circle under a square'"
 level4 = "Describe whatever you want!"
 
 def picture_path(level, i_picture, session_name, guess=False):
