@@ -11,7 +11,7 @@ Focused research question:  Can we teach a computer a mapping from natural langu
 # An Interactive Language Learning Game
 
 ## Demo of the SHAPELURN
-To play the our language learning game you only have to clone the repository and run the gui_simple.py script. 
+To play the our language learning game you only have to clone the repository and run the gui_simple_floating.py script. 
 You will be asked to enter a name for your session and the programm will then create a new folder with your chosen name in the source code directory. 
 In this folder the result data from your game  will be stored. <br>
 If your are testing the game for us in order to collect data for our evaluation of the system, this folder contains all the data we need from you. (However, additional feedback with respect to the overall game experience, clearity of instructions,... is very welcome). By sending the resulting folder to us you agree that we use your anonymized data for evaluating our model. 
