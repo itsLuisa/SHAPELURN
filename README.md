@@ -39,7 +39,7 @@ Constraints on descriptions depending on level: <br>
 * Level 1: Use only the shapes and/or the number of blocks for your description, e.g.: *a circle* or *two forms*
 * Level 2: You can additionally describe the blocks by color, e.g: *two blue forms*
 * Level 3: Now you can describe relations between blocks and use conjunction (please don't use colors), e.g.: *a circle under a square*
-* Level4: Describe whatever you want!
+* Level 4: Describe whatever you want!
 
 **Important** Do not try to move the window of the GUI why it is processing your description or your feedback as this will lead to a bug in the presentation of the GUI!
 
