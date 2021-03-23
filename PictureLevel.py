@@ -12,6 +12,7 @@ def setPicParameters(level, i_picture, session_name, sec_ver=False):
     :param level: numer (int) of the current level
     :param i_picture: number (int) of the current picture in the current level
     :param session_name: name of the current session
+    :param sec_ver: whether the second version for level 2 with more blocks should be used
     :return: the Picture Object
     """
 

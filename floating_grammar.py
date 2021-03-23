@@ -81,21 +81,25 @@ class ParseItem:
     s: int, size of the formula (= out of how many subformulas it is built)
     semantic: Truth value of the formula when evaluated with respect to a picture; None if the formula is not a complete
                 formula, i.e. if c is not "V"
-    components: set of pairs of words from the utterance and the lexical rule paired with it by the parser
-    formular: string representation of the formula
+    components: list of pairs of words from the utterance and the lexical rule paired with it by the parser
+    str_form: string representation of the formula
     guessed_blocks: list of Block Objects, list of the guessed blocks when formular is evaluate w.r.t a given picture
                     the list is empty if formula is not complete yet, i.e. if c is not "V"
     summed_weights: float, sum of the weights of the subformulas
+    included_words: list of the tokens of the input utterance that are not yet covered by the parse item
+    remaining_words: list the tokens of the input utterance that are already covered by the parse item
     """
     def __init__(self, categorie, length, semantic, components, str_form, guesses, weight, rem, incl):
         """
         :param categorie: string, category of the formula
         :param length: int, size of the formula
         :param semantic: Truth value of the formula or None
-        :param components: set of pairs of words from the utterance and the lexical rule paired with it by the parser
+        :param components: list of pairs of words from the utterance and the lexical rule paired with it by the parser
         :param str_form: string representation of the formula
         :param guesses: list of Block Objects or empty list
         :param weight: float, weight of the formula
+        :param rem: list of the tokens of the input utterance that are not yet covered by the parse item
+        :param incl: list the tokens of the input utterance that are already covered by the parse item
         """
         self.c = categorie
         self.s = length
@@ -137,7 +141,7 @@ class Grammar:
         # tokens of the input utterance
         words = s.split()
         # maximum length until which parser should build up formulas
-        # set to length of input + 2 to account for potentially missing color and exist that has to be inserted "out of the air"
+        # set to length of input + 4 to account for potentially missing color and exist that has to be inserted "out of the air"
         maxlen = len(words)+4
         # initialize parse chart
         chart = defaultdict(set)
@@ -151,7 +155,6 @@ class Grammar:
                 semantic = None
                 remaining = words.copy()
                 remaining.remove(word)
-                #item = ParseItem(categorie, 1, semantic, {(word, function)}, function, guessed_blocks, weight, remaining, [word])
                 item = ParseItem(categorie, 1, semantic, [(word, function)], function, guessed_blocks, weight, remaining, [word])
                 chart[categorie, 1].add(item)
                 agenda.append(item)
@@ -184,12 +187,12 @@ class Grammar:
                      c_new = self.rules[c2, c1]
                      # for each possible combination create a new ParseItem object for the resulting combined formula
                      for item2 in chart[c2, s2]:
+                         # check that both ParseItems can be combined
                          new_incl, new_rem = self.check_preconditions(item, item2, words)
                          if not new_incl:
                              continue
 
                          semantic_new = None
-                         #components_new = components1.union(item2.components)
                          components_new = components1+item2.components
                          function_new = item2.formular + "(" + item.formular + ")"
                          weight_new = item.summed_weights + item2.summed_weights
@@ -207,6 +210,7 @@ class Grammar:
                      c_new = self.rules[c1, c2]
                      # for each possible combination create a new ParseItem object for the resulting combined formula
                      for item2 in chart[c2, s2]:
+                         # check that both ParseItems can be combined
                          new_incl, new_rem = self.check_preconditions(item, item2, words)
                          if not new_incl:
                              continue
@@ -269,11 +273,15 @@ class Grammar:
         return False
 
 
-    def check_preconditions(self,pi_1, pi_2, words):
+    def check_preconditions(self, pi_1, pi_2, words):
         """
-        :param pi_1:
-        :param pi_2:
-        :param words:
+        checks that no token from the input utterance is already in included in both parse items
+        if that is the case for one token they cannot be combined -> None, None is returned
+        if they do not both include the same token already, they can be combined and two lists are returned:
+        one with the included tokens and one with the remaining tokens of the combination of the two parse items
+        :param pi_1: a parse item
+        :param pi_2: a parse item
+        :param words: list of the input tokens
         """
         flag1 = False
         flag2 = False
@@ -405,10 +413,8 @@ def grouping(lfs):
     for lf in lfs:
         if lf.semantic:
             groups[frozenset(lf.guessed_blocks)].append(lf)
-    #print(groups)
     for grouped_items in groups.values():
         grouped_items.sort(key=lambda p_item: p_item.summed_weights, reverse=True)
-    #print(groups)
 
     for gue_bl, grouped_items in groups.items():
         max_weights.append((gue_bl, grouped_items[0].summed_weights))

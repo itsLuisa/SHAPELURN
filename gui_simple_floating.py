@@ -263,7 +263,7 @@ while True:
             learning[rule] += val
         rule_probs[n] = learning
         lf1 = lf[0]
-        #print(lf1.c, lf1.s, lf1.semantic, lf1.components, lf1.formular, lf1.guessed_blocks, lf1.summed_weights)
+
         # writes information about the round into the evaluation file
         n_guessed_blocks = len(guess)
         eval_response = "yes"
@@ -274,6 +274,7 @@ while True:
 
         # update the level display
         n += 1
+        # used to enable that level 2 consists of 5 pictures more than the others with potentially more than three blocks
         second_version = False
         if i_picture >= 15 and i_picture < 20 and level == 2:
             second_version = True
