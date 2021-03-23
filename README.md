@@ -42,7 +42,7 @@ Constraints on descriptions depending on level: <br>
 * Level 3: Now you can describe relations between blocks and use conjunction (please don't use colors), e.g.: *a circle under a square*
 * Level 4: Describe whatever you want!
 
-**Important** Do not try to move the window of the GUI why it is processing your description or your feedback as this will lead to a bug in the presentation of the GUI!
+**Important** Do not try to move the window of the GUI why it is processing your description or your feedback as this will lead to a bug in the presentation of the GUI that does not allow to continue the game!
 
 For the detailed instructions and examples please refer to the [Wiki](https://github.com/itsLuisa/Semantic-Parsing-of-picture-descriptions/wiki)
 
