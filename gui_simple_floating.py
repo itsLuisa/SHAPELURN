@@ -53,6 +53,11 @@ def picture_path(level, i_picture, session_name, guess=False):
     return path_pict
 
 def hiding_unhiding(event):
+    """
+    regulates which buttons and other items are visible and which aren't
+    :param event: the event that has been cause by the user such as pressing a button or typing in something
+    :return: nothing
+    """
     if event == "-NEXT-":
         window["-LEVEL-"].update("Level " + str(level) + ", Picture " + str(i_picture) + ":")
         window["-DESCRIPTION-"].update(level1)
@@ -86,6 +91,7 @@ def hiding_unhiding(event):
         window["-ENTER-"].update(visible=True)
         window["-INPUT-"].update("")
 
+
 # the game loop
 while True:
     # event records which buttons were pressed, values store any keyboard input
@@ -101,7 +107,7 @@ while True:
         session_name = values["-SESSION-"]
         window["-START-"].update(disabled=False)
 
-    # initializes a folder named after the session and an evaluation file inside that folder
+    # initializes a folder named after the session and two evaluation files inside that folder
     if event == "-START-":
         os.mkdir(session_name)
         evaluation_file = "./" + session_name + "/evaluation.csv"
@@ -128,8 +134,10 @@ while True:
         current_pic = setPicParameters(level, i_picture, session_name, second_version)
         current_pic.draw()
         create_all_blocks(current_pic)
+
         # displaying the picture on the screen
         window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name))
+
         # storing the path to write into the evaluation file
         eval_picture = str(picture_path(level, i_picture, session_name))
 
@@ -141,6 +149,7 @@ while True:
     # takes the complete input and processes it with grammar and learning algorithm to find the shapes the user referred to
     if event == "-ENTER-":
         hiding_unhiding(event)
+
         # stemming in order to find e.g. plural and singular forms and map them to the same lexical entry
         inpt = sim_stemm(inpt.lower(),list(crude_lexicon))
         
@@ -155,15 +164,16 @@ while True:
                     total_scores[word][rule]=0
         gram = Grammar(crude_lexicon,rules,functions)
         print("checkpoint")
-        # generate all possible trees given the current rules
-        #lfs = BackAndForth_Iterator(gram.gen(inpt))
-        #print(lfs)
-        # with grouping included so every marking will only appear once, doesnt work though
+
+        # generate all possible parses given the current rules
         parse = gram.gen(inpt)
         print("parsing done")
 
+        # with grouping included every marking will only appear once
         groups, sortedguesses = grouping(parse)
         print(sortedguesses)
+
+        # creates an iterator for the user to move forward and backward through the guesses
         blocks = BackAndForth_Iterator(sortedguesses)
         print(blocks)
         try:
@@ -180,7 +190,7 @@ while True:
         except StopIteration:
             pass
 
-    # parser has found the correct tree, learning algorithm updates the weights for lexical items
+    # parser has found the correct parse, learning algorithm updates the weights for lexical items
     # next picture is displayed
     if event == "-YES-":
         hiding_unhiding(event)
@@ -188,9 +198,9 @@ while True:
         deleted_rules = list()
         # updates weights
         lf = groups[current_marking]
-        weights = evaluate_semparse(inpt,lf,gram,parse) # what is lfs.list? How can we substitute it with the current structure? (the values of groups are parseItems = lfs)
+        weights = evaluate_semparse(inpt,lf,gram,parse)
         if all([weights[key]==0 for key in weights]):
-            print("Works!")
+            print("Works!") # if there is only the correct mapping left
             word_rule = defaultdict(set)
             for w in weights:
                 if len(w)==2:
@@ -243,7 +253,8 @@ while True:
                 for r in crude_lexicon[word][:]:
                     if r[1] == rule:
                         crude_lexicon[word].remove(r)
-                                
+
+            # update crude lexicon
             for word in crude_lexicon:
                 for ruleindex in range(0,len(crude_lexicon[word])):
                     crude_lexicon[word][ruleindex] = (crude_lexicon[word][ruleindex][0],crude_lexicon[word][ruleindex][1],total_scores[word][crude_lexicon[word][ruleindex][1]])
@@ -255,10 +266,8 @@ while True:
             print("---",word,"---")
             for rule in crude_lexicon[word]:
                 print(rule)
-            #print(crude_lexicon[word])
-        #print(total_scores)
-        #print(weights)
 
+        # store weights for evaluation
         for rule, val in list(weights.items()):
             learning[rule] += val
         rule_probs[n] = learning
@@ -280,6 +289,7 @@ while True:
             second_version = True
         elif i_picture >= 15:
             second_version = False
+            # after each level, update the weights file
             with open(weights_file, "a", encoding="utf-8") as g:
                 for id, rule in enumerate(learning.items()):
                     try:
@@ -299,9 +309,7 @@ while True:
 
             elif level == 4:
                 window["-DESCRIPTION-"].update(level4)
-            #else:
-                #print("thank you for participating!")
-                #break
+
         i_picture += 1
 
         # initialize new picture
@@ -315,7 +323,7 @@ while True:
         window["-LEVEL-"].update("Level " + str(level) + ", Picture " + str(i_picture) + ":")
         eval_attempts = 0
 
-        # level up screen
+        # transfer level up screen
         if level >= 2 and level < 4 and i_picture == 1:
             window["-INPUT-"].hide_row()
             window["-LEVELUP-"].unhide_row()
@@ -328,11 +336,12 @@ while True:
             window["-NEXTINSTR-"].unhide_row()
             window["-NEXTINSTR-"].update("You can now close the window:)")
 
+    # level up screen, game continues when this button is pressed
     if event == "-CONTINUE-":
         window["-LEVELUP-"].hide_row()
         window["-INPUT-"].unhide_row()
 
-    # parsing tree was not correct, produce new guess
+    # parse was not correct, produce new guess
     if event == "-NO-": # next
         # produce new guess (as above)
         try:
@@ -356,12 +365,12 @@ while True:
             i_picture += 1
             current_pic = setPicParameters(level, i_picture, session_name, second_version)
             current_pic.draw()
-            # Katharina added following line
             create_all_blocks(current_pic)
             window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name))
             window["-LEVEL-"].update("Level " + str(level) + ", Picture " + str(i_picture) + ":")
             eval_picture = str(picture_path(level, i_picture, session_name))
 
+    # see the previous guess in case one skipped the right guess accidentally
     if event == "-NO2-": # previous
         # go to the step one before
         try:
@@ -386,7 +395,6 @@ while True:
             i_picture += 1
             current_pic = setPicParameters(level, i_picture, session_name, second_version)
             current_pic.draw()
-            # Katharina added following line
             create_all_blocks(current_pic)
             window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name))
             eval_picture = str(picture_path(level, i_picture, session_name))
@@ -395,14 +403,14 @@ while True:
     # skip if you accidentally entered a wrong input
     if event == "-SKIP-":
         hiding_unhiding(event)
-        
+
+        # update the evaluation file
         with open(evaluation_file, "a", encoding="utf-8") as f:
             line = str(n) +"\t"+ str(level)  +"\t"+str(i_picture) + "\t" + eval_picture + "\t" + "NA" + "\t" + eval_input + "\t" + "NA" + "\t" + "NA" + "\t" + "NA" + "\n"
             f.writelines(line)
 
         current_pic = setPicParameters(level, i_picture, session_name, second_version)
         current_pic.draw()
-        # Katharina added following line
         create_all_blocks(current_pic)
         window["-IMAGE-"].update(filename=picture_path(level, i_picture, session_name))
         eval_picture = str(picture_path(level, i_picture, session_name))
@@ -411,6 +419,3 @@ while True:
        
 
 window.close()
-
-for i in learning:
-    print(i, learning[i])

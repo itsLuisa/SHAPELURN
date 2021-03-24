@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 
 default_font = "Helvetica 12"
 
+# description of the game and entering the session name
 starting_screen = [
     [
         sg.Text("Hello! Welcome to SHAPELURN, where you can teach the computer any language of your choice!\nYou will be looking at different pictures and describing them to the computer in one sentence.\nThere will be four levels with different constraints on the descriptions.\nPlease use short sentences in the first two levels and do not use negation at all.", font=default_font)
@@ -37,7 +38,7 @@ game_screen = [
     ],
     [
         sg.Text("Did you refer to this?", font=default_font),
-        sg.Button("YES", key="-YES-", disabled=True, font=default_font),
+        sg.Button("YES", key="-YES-", disabled=True, font=default_font), # give feedback using these buttons
         sg.Button("BACK", key="-NO2-", disabled=True, font=default_font),
         sg.Button("NEXT", key="-NO-", disabled=True, font=default_font),
         sg.Button("SKIP", key="-SKIP-", disabled=True, font=default_font)
