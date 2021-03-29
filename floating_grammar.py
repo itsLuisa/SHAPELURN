@@ -268,7 +268,11 @@ class Grammar:
         :return: True or False
         """
         for pi in p_item_list:
-            if pi.formular == p_item.formular and pi.components == p_item.components:
+            pi_c = pi.components.copy()
+            p_item_c = p_item.components.copy()
+            pi_c.sort()
+            p_item_c.sort()
+            if pi.formular == p_item.formular and pi_c == p_item_c:
                 return True
         return False
 
@@ -441,8 +445,9 @@ if __name__ == "__main__":
     #lfs = gram.gen("is one red triangle over a blue triangle")
     #lfs = gram.gen("a triangle")
     #lfs = gram.gen("a red triangle and a blue triangle")
-    lfs = gram.gen("a triangle over a square")
+    #lfs = gram.gen("a triangle over a square")
     #lfs = gram.gen("a triangle and a square")
+    lfs = gram.gen("a triangle over a circle over a square")
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
