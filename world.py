@@ -45,18 +45,9 @@ def set_all_coordinates(chart):
             if chart[row-1][column-1] != None:
                 chart[row-1][column-1].set_coordinates(column,row)
                 
-    
 
-# for the simple world.png picture
-one = Block("blue","rectangle")
-two = Block("blue","rectangle")
-three = Block("blue","triangle")
-four = Block("yellow","rectangle")
-five = Block("red","triangle")
 
-world = [[None,one,two,None],[three,None,None,four],[None,five,None,None],[None,None,None,None]]
-
-# for the world2.png picture
+# for the world.png picture
 one = Block("red","triangle")
 two = Block("blue","circle")
 three = Block("red","circle")
@@ -77,8 +68,6 @@ sixteen = Block("blue","triangle")
 world2 = [[one,two,three,four],[five,six,seven,eight],[nine,ten,eleven,twelve],[thirteen,fourteen,fivteen,sixteen]]
 
 
-# choose which example picture you would like to use
-# allblocks_test = world
 allblocks_test = world2
 set_all_coordinates(allblocks_test)
 

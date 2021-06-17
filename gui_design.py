@@ -1,5 +1,9 @@
 import PySimpleGUI as sg
 
+"""
+Defines some of the layout of the gui and the initial instruction screens
+"""
+
 default_font = "Helvetica 12"
 
 # description of the game and entering the session name

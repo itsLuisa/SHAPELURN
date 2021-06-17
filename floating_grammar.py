@@ -115,7 +115,7 @@ class ParseItem:
 
 
 """
-The framework below is taken from Potts & Liang
+The framework below is taken from Christopher Potts & Percy Liang
 We defined our own lexicon, rules and  functions and extended the main function demonstrating our grammar framework
 The Grammar class was taken from Potts & Liang and we kept the sem function but replaced methods for the actual parsing
 with an implementation of the floating parser instead of the basic cky parser
@@ -412,6 +412,16 @@ functions = {
 
 
 def grouping(lfs):
+    """
+    groups all ParseItems from the input list by the guessed blocks they evaluate to and
+    for each grouping of the same guessed blocks the corresponding formulas are sorted by their weights in descending
+    order
+    :param lfs: a list of ParseItems
+    :return: a dictonary with the set of the guessed blocks as keys and a list of the formulas evaluating to this
+            combination of guessed blocks sorted by their weights in descending order
+            and a list of all possible guessed blocks combinations ordered by the max weight of a corresponding formula
+            in descending order
+    """
     groups = defaultdict(list)
     max_weights = []
     for lf in lfs:
@@ -430,7 +440,12 @@ def grouping(lfs):
 
 
 if __name__ == "__main__":
-    #creat_all_blocks(setPicParameters())
+    """
+    runs the parsing and evaluating for an example input sentence and 
+    prints all related information 
+    you can comment and uncomment the different assignments for lfs to see different examples or can enter a new description
+    the parses are evaluated against the picture defined in world.py and displayed in world.jpg
+    """
     gold_lexicon = gold_lexicon_basic.copy()
     gram = Grammar(gold_lexicon, rules, functions)
     allblocks2 = []
@@ -445,15 +460,20 @@ if __name__ == "__main__":
     #lfs = gram.gen("is one red triangle over a blue triangle")
     #lfs = gram.gen("a triangle")
     #lfs = gram.gen("a red triangle and a blue triangle")
-    #lfs = gram.gen("a triangle over a square")
+    lfs = gram.gen("a triangle over a square")
     #lfs = gram.gen("a triangle and a square")
-    lfs = gram.gen("a triangle over a circle over a square")
+    #lfs = gram.gen("a triangle over a circle over a square")
+
+    # print for all derived parses the root category, the size, the truth value and the mappings
+    # as well as the derived formula, the list of guessed block objects and the total sum of the weights of the subformuals
     for lf in lfs:
         print(lf.c,lf.s,lf.semantic,lf.components)
         print(lf.formular)
         print(lf.guessed_blocks)
         print("weight: " + str(lf.summed_weights))
         print("\n")
+
+    # prints the coordinates of the guessed blocks corresponding to the derived parses
     print("GROUPING")
     g = grouping(lfs)
     print(g[0])
