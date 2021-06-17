@@ -11,6 +11,10 @@ from collections import defaultdict
 from cossimforstem import sim_stemm
 from back_and_forth import BackAndForth_Iterator
 
+"""
+This script brings together the all parts of the project and creates the gui and runs the actual game.
+"""
+
 # inizializing grammar and learning algorithm
 crude_lexicon={}
 crude_rule = create_lex_rules()

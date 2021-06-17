@@ -1,3 +1,8 @@
+"""
+This script contains an optional function to customize the size of the pictures and to
+calculate the coordinates for the fields in the grids appropriately
+"""
+
 def calculate_coordinates(size_pic, size_grid, n, rel_blocks):
     """
     calcuates the coordinates of the upper left corner and the lower right corner of equally distributed

@@ -1,3 +1,7 @@
+"""
+This script defines the cosine similarity based stemming heuristic used for the language independent stemming
+"""
+
 def norm(vec):
     return sum([x**2 for x in vec])**0.5
     
