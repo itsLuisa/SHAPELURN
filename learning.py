@@ -1,5 +1,5 @@
 # The following code was written by Christopher Potts and Percy Liang. We adjusted
-# evaluate  as written in the comments in this function. It implements the Stochastic
+# evaluate as written in the comments in this function. It implements the Stochastic
 # Gradient Descent.
 
 

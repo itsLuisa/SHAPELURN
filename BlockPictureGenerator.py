@@ -31,6 +31,7 @@ rel_blocks = 0.6        # how much of the length of one side of grid should be m
 
 
 # Calculate coordinates automatically: Use this when changing any of the settings for the picture above
+# uncommented also the import statement in line 5 in this case
 #coordinates = calculate_coordinates(size_pic, size_grid, dim, rel_blocks)
 
 # Use fixed coordinates (NOTE: works only for the default 4x4 grid)
