@@ -1,6 +1,7 @@
 # The following code was written by Christopher Potts and Percy Liang. Their original file
 # is called synthesis.py. We deleted evaluate_interpretive and evaluate_latent_semparse and
-# adjusted evaluate_semparse and leaves as written in the comments in these functions.
+# adjusted evaluate_semparse and leaves as written in the comments in these functions. 
+# The file computets thes feature vector for the Stochastic Gradient Descent and starts it.
 
 
 import re
