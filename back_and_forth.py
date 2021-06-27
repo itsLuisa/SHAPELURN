@@ -1,3 +1,4 @@
+# This file contains an Iterator like class to make the searching throught the formula groupings easier.
 
 class BackAndForth_Iterator:
     def __init__(self,somelist):
