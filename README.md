@@ -3,7 +3,9 @@
 
 <div style="float:right;"><img src="https://user-images.githubusercontent.com/36165516/107762120-cf5e8980-6d2c-11eb-97d8-30ea3c3ea5a5.jpg" alt="Logo" height="180" align="right"></img></div>
 
-This project is part of the Softwareproject "Language, Action and Perception".
+This repository contains the code corresponding to "SHAPELURN: An Interactive Language Learning Game with Logical Inference" which will be presented at the InterNLP 2021 Workshop.
+
+The project was developed as part of the Softwareproject "Language, Action and Perception" at Saarland University.
 
 General research question:  Can we implement a model that learns a natural language from scratch through interaction?
 
