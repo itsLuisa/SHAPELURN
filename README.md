@@ -10,10 +10,6 @@ Katharina Stein, Leonie Harter, and Luisa Geiger.  2021.  SHAPELURN: An interact
 
 The project was developed as part of the Softwareproject "Language, Action and Perception" at Saarland University.
 
-General research question:  Can we implement a model that learns a natural language from scratch through interaction?
-
-Focused research question:  Can we teach a computer a mapping from natural language picture descriptions to a logical representation?
-
 
 ## Demo of SHAPELURN
 To play our language learning game you only have to clone the repository and run the gui_simple_floating.py script. 
