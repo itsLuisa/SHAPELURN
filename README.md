@@ -52,22 +52,3 @@ For the detailed instructions and examples please refer to the [Wiki](https://gi
 
 The project idea is based on Wang, S. I., Liang, P., & Manning, C. D. (2016). Learning language games through interaction. arXiv preprint arXiv:1606.02447. <br>
 Our parsing and learning framework is based on Liang, Percy and Christopher Potts. 2014. Bringing machine learning and compositional semantics together. *Annual Review of Linguistics* 1(1): 355–376. and uses code from [the corresponding demonstration code](https://github.com/cgpotts/annualreview-complearning).
-
-## Files 
-* folder marked_pictures: needed for running grammar.py, guesses for the test utterances in semdata.py will be saved here
-* folder pictures: example pictures as created by PictureLevel.py
-
-* BlockPictureGenerator.py: automatically creates and saves the pictures **documented**
-* CalculCoordinates.py: used to calculate the coordinates for the picture generation in BlockPictureGenerator.py **documented**
-* cosimforstem.py: cosine similarity based heuristic for stemming words from an unknown language **documented**
-* PictureLevel.py: generates a picture for a specified level by calling BlockPictureGenerator.py with corresponding parameters **documented**
-* Semantic_Learner.py:  
-* eval_helper.py: functions needed in grammar.py to evaluate truth of description **documented**
-* floating_grammar.py: defines the grammer, the evalation of logical forms and the floating parser **documented**
-* grammar.py: defines the grammar, the evaluation of logical forms and the basic cky parser **documented**
-* gui_simple.py: working GUI **documented**
-* gui_simple_floating.py
-* back_and_forth.py: An iterator class, that can go back and forth through a list
-* learning.py: the Stochastic Gradient Descent learn algorithm 
-* semdata.py: training and test sentences 
-* word.py and world2.png: example picture used for demo of grammar.py with test sentences from semdata.py
