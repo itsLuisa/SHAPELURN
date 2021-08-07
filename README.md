@@ -8,7 +8,7 @@ This repository contains the code for "SHAPELURN: An Interactive Language Learni
 Katharina Stein, Leonie Harter, and Luisa Geiger.  2021.  SHAPELURN: An interactive language learning gamewith logical inference. InProceedings of the First Workshop on Interactive Learning for Natural LanguageProcessing, pages 16–24, Online, August. Association for Computational Linguistics.
 
 
-The project was developed as part of the Softwareproject "Language, Action and Perception" at Saarland University.
+The project was developed as part of the Softwareproject "Language, Action and Perception" in the winter term 20/21 at Saarland University.
 
 
 ## Demo of SHAPELURN
